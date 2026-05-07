@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MyStartUpCompany.Persistence/MyStartUpCompany.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>
