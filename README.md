@@ -60,10 +60,6 @@ Update the connection string in `src/MyStartUpCompany.Persistence/appsettings.js
 
 ### 4. Create and Apply Initial Migration
 
-.\scripts\ef.ps1 add InitialCreate
-
-.\scripts\ef.ps1 update
-
 ## 🗄️ Database Migrations
 
 ### Using PowerShell Helper Scripts (Recommended)
@@ -74,31 +70,31 @@ The solution includes a convenient PowerShell script (`scripts/ef.ps1`) to simpl
 
 **Example:**
 
-````````
-
-````````
+```
+.\scripts\migrations\add-migration.ps1 -MigrationName "YourMigrationName"
+```
 
 #### Apply Migrations to Database
 
-````````
-.\scripts\ef.ps1 update
-````````
+```
+.\scripts\migrations\update-database.ps1
+```
 
 This command applies all pending migrations to the database.
 
 #### List All Migrations
 
-````````
+```
 .\scripts\ef.ps1 list
-````````
+```
 
 Shows all migrations and their status (pending/applied).
 
 #### Remove Last Migration
 
-````````
-.\scripts\ef.ps1 remove
-````````
+```
+.\scripts\migrations\remove-migration.ps1
+```
 
 This command removes the last applied migration.
 
@@ -106,9 +102,9 @@ This command removes the last applied migration.
 
 #### Drop Database
 
-````````
+```
 .\scripts\ef.ps1 drop
-````````
+```
 
 Drops the entire database. Use with caution!
 
@@ -116,9 +112,9 @@ Drops the entire database. Use with caution!
 
 #### Drop Database
 
-````````
+```
 .\scripts\ef.ps1 drop
-````````
+```
 
 Drops the entire database. Use with caution!
 
@@ -183,4 +179,3 @@ dotnet user-secrets set "DbPassword" "YourSecurePassword"
 
   - **Q: Can I use a different version of .NET?**
     A: This solution is built on .NET 10. While it may work on other versions, it is not guaranteed.
-
