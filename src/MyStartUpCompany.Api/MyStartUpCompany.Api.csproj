@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	
+	<!-- Enable XML documentation -->
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+<NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.14.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyStartUpCompany.Persistence\MyStartUpCompany.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>
