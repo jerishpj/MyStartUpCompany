@@ -12,12 +12,12 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails;
 public class CompanyController : ControllerBase
 {
     private readonly GetCompanyQueryHandler _getCompanyHandler;
-    private readonly GetAllCompanyQueryHandler _getAllCompaniesHandler;
+    private readonly GetAllCompaniesQueryHandler _getAllCompaniesHandler;
     private readonly ILogger<CompanyController> _logger;
 
     public CompanyController(
         GetCompanyQueryHandler getCompanyHandler,
-        GetAllCompanyQueryHandler getAllCompaniesHandler,
+        GetAllCompaniesQueryHandler getAllCompaniesHandler,
         ILogger<CompanyController> logger)
     {
         _getCompanyHandler = getCompanyHandler;
@@ -36,23 +36,15 @@ public class CompanyController : ControllerBase
     /// <response code="400">If the id is invalid</response>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(CompanyDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CompanyDto>> GetCompany(
         [FromRoute] int id,
         CancellationToken cancellationToken)
     {
-        if (id <= 0)
-        {
-            return BadRequest(new { Error = "Company ID must be greater than 0" });
-        }
+        _logger.LogInformation("GET request received for company with ID: {CompanyId}", id);
 
         var company = await _getCompanyHandler.HandleAsync(id, cancellationToken);
-
-        if (company == null)
-        {
-            return NotFound(new { Error = $"Company with ID {id} not found" });
-        }
 
         return Ok(company);
     }
@@ -68,13 +60,10 @@ public class CompanyController : ControllerBase
     public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllCompanies(
         CancellationToken cancellationToken)
     {
-        // Implement GetAllCompaniesQueryHandler
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return BadRequest(new { Error = "Request was cancelled" });
-        }
+        _logger.LogInformation("GET request received for all companies");
 
         var companies = await _getAllCompaniesHandler.HandleAsync(cancellationToken);
+
         return Ok(companies);
     }
 }

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
-using MyStartUpCompany.Api.Middleware;
+using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Persistence;
 using Scalar.AspNetCore;
 
@@ -11,18 +11,24 @@ public partial class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-
         builder.Services.AddControllers();
 
+        // Configure ProblemDetails with custom factory
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-        builder.Services.AddProblemDetails();
+        builder.Services.AddProblemDetails(options =>
+        {
+            options.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                context.ProblemDetails.Extensions["timestamp"] = DateTime.UtcNow;
+            };
+        });
 
-        // inject the GetCompanyQueryHandler as a transient service
-        builder.Services.AddTransient<GetCompanyQueryHandler>();
-        builder.Services.AddTransient<GetAllCompanyQueryHandler>();
+        // Register query handlers
+        builder.Services.AddScoped<GetCompanyQueryHandler>();
+        builder.Services.AddScoped<GetAllCompaniesQueryHandler>();
 
-
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        // Configure OpenAPI
         builder.Services.AddOpenApi();
 
         // Configure Entity Framework Core
@@ -52,6 +58,7 @@ public partial class Program
             });
         }
 
+        // Use exception handler middleware
         app.UseExceptionHandler();
 
         app.UseHttpsRedirection();

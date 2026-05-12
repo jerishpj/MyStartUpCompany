@@ -4,5 +4,7 @@
     <Project Path="src/MyStartUpCompany.Persistence/MyStartUpCompany.Persistence.csproj" />
     <Project Path="src/MyStartUpCompany.Worker/MyStartUpCompany.Worker.csproj" Id="e32139e4-491d-436e-a571-a8ddd53ac81f" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/MyStartUpCompany.Api.Tests/MyStartUpCompany.Api.Tests.csproj" Id="a2e2df0d-fd0a-439a-892c-76464e4c1e5b" />
+  </Folder>
 </Solution>

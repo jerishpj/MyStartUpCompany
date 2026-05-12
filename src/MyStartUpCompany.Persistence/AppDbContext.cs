@@ -7,6 +7,7 @@ namespace MyStartUpCompany.Persistence
     public class AppDbContext : DbContext
     {
         public DbSet<Company> Companies { get; set; }
+        public DbSet<Employee> Employees { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -39,6 +40,33 @@ namespace MyStartUpCompany.Persistence
                 entity.Property(e => e.Phone)
                     .IsRequired()
                     .HasMaxLength(20); // Set Phone as required with a max length
+            });
+
+            // Configure the Employee entity
+            modelBuilder.Entity<Employee>(entity =>
+            {
+                entity.HasKey(e => e.Id); // Set Id as the primary key
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(100); // Set Name as required with a max length
+                entity.Property(e => e.Title)
+                    .HasMaxLength(50); // Set Title with a max length
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500); // Set Description with a max length
+                entity.Property(e => e.Address)
+                    .HasMaxLength(200); // Set Address with a max length
+                entity.Property(e => e.City)
+                    .HasMaxLength(50); // Set City with a max length
+                entity.Property(e => e.Region)
+                    .HasMaxLength(50); // Set Region with a max length
+                entity.Property(e => e.PostalCode)
+                    .HasMaxLength(20); // Set PostalCode with a max length
+                entity.Property(e => e.Country)
+                    .HasMaxLength(50); // Set Country with a max length
+                entity.Property(e => e.Phone)
+                    .HasMaxLength(20); // Set Phone with a max length
+                entity.Property(e => e.Email)
+                    .HasMaxLength(100); // Set Email with a max length
             });
         }
     }
