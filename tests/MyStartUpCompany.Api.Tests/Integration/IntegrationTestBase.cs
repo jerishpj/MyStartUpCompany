@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using MyStartUpCompany.Persistence;
-using Xunit;
 
 namespace MyStartUpCompany.Api.Tests.Integration;
 
@@ -27,11 +26,31 @@ public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFa
     }
 
     /// <summary>
-    /// Gets a DbContext for assertions
+    /// Gets a DbContext for assertions (creates a new scope)
     /// </summary>
     protected AppDbContext GetDbContext()
     {
         var scope = Factory.Services.CreateScope();
         return scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    }
+
+    /// <summary>
+    /// Executes an action within a database context scope
+    /// </summary>
+    protected void WithDbContext(Action<AppDbContext> action)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        action(context);
+    }
+
+    /// <summary>
+    /// Executes a function within a database context scope and returns a result
+    /// </summary>
+    protected TResult WithDbContext<TResult>(Func<AppDbContext, TResult> func)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return func(context);
     }
 }
