@@ -3,7 +3,7 @@ using MyStartUpCompany.Persistence;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 
-public class GetAllCompaniesQueryHandler
+public class GetAllCompaniesQueryHandler : IGetAllCompaniesQueryHandler
 {
     private readonly AppDbContext _dbContext;
     private readonly ILogger<GetAllCompaniesQueryHandler> _logger;

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Persistence;
+using MyStartUpCompany.Persistence.Extensions;
 using MyStartUpCompany.Worker;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Services;
@@ -11,17 +12,8 @@ builder.Services.AddHostedService<Worker>();
 builder.Services.AddScoped<AddCompanyEventHandler>();
 builder.Services.AddScoped<CompanyFileProcessorService>();
 
-// Configure Entity Framework Core
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-    sqlOptions =>
-    {
-        sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null
-        );
-    }));
+// Configure Entity Framework Core with environment-based database selection
+builder.Services.AddAppDatabase(builder.Configuration, builder.Environment);
 
 var host = builder.Build();
 host.Run();

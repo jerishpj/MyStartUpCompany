@@ -33,8 +33,10 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries
                         Phone = c.Phone
                     })
                     .ToListAsync(cancellationToken);
-    
-                return companies;
+
+                _logger.LogInformation("Retrieved {Count} companies", companies.Count);
+
+            return companies;
         }
     }
 }

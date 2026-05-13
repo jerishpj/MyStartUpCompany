@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Persistence;
+using MyStartUpCompany.Persistence.Extensions;
 using Scalar.AspNetCore;
 
 public partial class Program
@@ -25,23 +26,14 @@ public partial class Program
         });
 
         // Register query handlers
-        builder.Services.AddScoped<GetCompanyQueryHandler>();
-        builder.Services.AddScoped<GetAllCompaniesQueryHandler>();
+        builder.Services.AddScoped<IGetCompanyQueryHandler, GetCompanyQueryHandler>();
+        builder.Services.AddScoped<IGetAllCompaniesQueryHandler, GetAllCompaniesQueryHandler>();
 
         // Configure OpenAPI
         builder.Services.AddOpenApi();
 
-        // Configure Entity Framework Core
-        builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-            sqlOptions =>
-            {
-                sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null
-                );
-            }));
+        // Configure Entity Framework Core with environment-based database selection
+        builder.Services.AddAppDatabase(builder.Configuration, builder.Environment);
 
         var app = builder.Build();
 

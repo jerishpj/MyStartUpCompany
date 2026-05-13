@@ -11,17 +11,17 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails;
 [Produces("application/json")]
 public class CompanyController : ControllerBase
 {
-    private readonly GetCompanyQueryHandler _getCompanyHandler;
-    private readonly GetAllCompaniesQueryHandler _getAllCompaniesHandler;
+    private readonly IGetCompanyQueryHandler _getCompanyHandler;
+    private readonly IGetAllCompaniesQueryHandler _getAllCompaniesHandler;
     private readonly ILogger<CompanyController> _logger;
 
     public CompanyController(
-        GetCompanyQueryHandler getCompanyHandler,
-        GetAllCompaniesQueryHandler getAllCompaniesHandler,
+        IGetCompanyQueryHandler getCompanyHandler,
+        IGetAllCompaniesQueryHandler getAllCompaniesQueryHandler,
         ILogger<CompanyController> logger)
     {
         _getCompanyHandler = getCompanyHandler;
-        _getAllCompaniesHandler = getAllCompaniesHandler;
+        _getAllCompaniesHandler = getAllCompaniesQueryHandler;
         _logger = logger;
     }
 
@@ -38,7 +38,7 @@ public class CompanyController : ControllerBase
     [ProducesResponseType(typeof(CompanyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CompanyDto>> GetCompany(
+    public async Task<IActionResult> GetCompany(
         [FromRoute] int id,
         CancellationToken cancellationToken)
     {
@@ -57,7 +57,7 @@ public class CompanyController : ControllerBase
     /// <response code="200">Returns the list of companies</response>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<CompanyDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAllCompanies(
+    public async Task<IActionResult> GetAllCompanies(
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("GET request received for all companies");

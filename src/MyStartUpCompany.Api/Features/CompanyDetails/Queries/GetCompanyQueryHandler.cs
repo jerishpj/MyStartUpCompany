@@ -7,7 +7,7 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 
 public record GetCompanyQuery(int CompanyId);
 
-public class GetCompanyQueryHandler
+public class GetCompanyQueryHandler : IGetCompanyQueryHandler
 {
     private readonly AppDbContext _dbContext;
     private readonly ILogger<GetCompanyQueryHandler> _logger;
