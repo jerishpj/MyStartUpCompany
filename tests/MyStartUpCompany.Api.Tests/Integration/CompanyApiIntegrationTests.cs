@@ -24,7 +24,7 @@ public class CompanyApiIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task GetCompany_ReturnsNotFound_WhenCompanyDoesNotExist()
     {
-        // Act - No data seeded
+        // Act
         var response = await Client.GetAsync("/api/company/999");
 
         // Assert
@@ -32,9 +32,9 @@ public class CompanyApiIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task GetAllcompany_ReturnsEmptyList_WhenNoData()
+    public async Task GetAllCompanies_ReturnsEmptyList_WhenNoData()
     {
-        // Act - No data seeded
+        // Act
         var response = await Client.GetAsync("/api/company");
 
         // Assert
@@ -42,7 +42,7 @@ public class CompanyApiIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task GetAllcompany_Returnscompany_WhenDataExists()
+    public async Task GetAllCompanies_ReturnsCompanies_WhenDataExists()
     {
         // Arrange
         SeedData(CompanyTestData.SeedMultipleCompanies);
@@ -52,5 +52,18 @@ public class CompanyApiIntegrationTests : IntegrationTestBase
 
         // Assert
         await response.ShouldContainInContent("Company A", "Company B");
+    }
+
+    [Fact]
+    public async Task GetAllCompanies_ReturnsStandardCompanies_WhenStandardDataSeeded()
+    {
+        // Arrange
+        SeedData(CompanyTestData.SeedStandardCompanies);
+
+        // Act
+        var response = await Client.GetAsync("/api/company");
+
+        // Assert
+        await response.ShouldContainInContent("Acme Corporation", "TechVision Inc", "Global Systems Ltd");
     }
 }

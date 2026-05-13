@@ -1,11 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Persistence;
-using MyStartUpCompany.Persistence.Entities;
+using MyStartUpCompany.Api.Tests.Builders;
 
 namespace MyStartUpCompany.Api.Tests.Helpers;
 
+/// <summary>
+/// Factory for creating in-memory database contexts for unit tests
+/// </summary>
 public static class TestDbContextFactory
 {
+    /// <summary>
+    /// Creates an in-memory AppDbContext for unit testing
+    /// </summary>
     public static AppDbContext CreateInMemoryContext(string databaseName = "TestDb")
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -16,49 +22,43 @@ public static class TestDbContextFactory
         return context;
     }
 
+    /// <summary>
+    /// Seeds standard test data using builders
+    /// </summary>
     public static void SeedTestData(AppDbContext context)
     {
-        var companies = new List<Company>
+        SeedCompanies(context);
+        SeedEmployees(context);
+    }
+
+    /// <summary>
+    /// Seeds standard company test data
+    /// </summary>
+    public static void SeedCompanies(AppDbContext context)
+    {
+        var companies = new[]
         {
-            new()
-            {
-                Id = 1,
-                Name = "Acme Corporation",
-                Description = "Leading provider of innovative solutions",
-                Address = "123 Main Street",
-                City = "San Francisco",
-                Region = "CA",
-                PostalCode = "94105",
-                Country = "United States",
-                Phone = "+1-555-123-4567",
-            },
-            new()
-            {
-                Id = 2,
-                Name = "TechVision Inc",
-                Description = "Software development company",
-                Address = "456 Tech Avenue",
-                City = "Seattle",
-                Region = "WA",
-                PostalCode = "98101",
-                Country = "United States",
-                Phone = "+1-555-987-6543",
-            },
-            new()
-            {
-                Id = 3,
-                Name = "Global Systems Ltd",
-                Description = "Enterprise solutions provider",
-                Address = "789 Business Blvd",
-                City = "New York",
-                Region = "NY",
-                PostalCode = "10001",
-                Country = "United States",
-                Phone = "+1-555-456-7890",
-            }
+            new Builders.CompanyBuilder().AsAcmeCorporation().Build(),
+            new Builders.CompanyBuilder().AsTechVisionInc().Build(),
+            new Builders.CompanyBuilder().AsGlobalSystemsLtd().Build()
         };
 
         context.Companies.AddRange(companies);
+        context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Seeds standard employee test data
+    /// </summary>
+    public static void SeedEmployees(AppDbContext context)
+    {
+        var employees = new[]
+        {
+            new EmployeeBuilder().AsSeniorDeveloper().Build(),
+            new EmployeeBuilder().AsProjectManager().Build()
+        };
+
+        context.Employees.AddRange(employees);
         context.SaveChanges();
     }
 }

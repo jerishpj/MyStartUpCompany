@@ -1,4 +1,3 @@
-using MyStartUpCompany.Api.Tests.TestData.Builders;
 using MyStartUpCompany.Persistence;
 
 namespace MyStartUpCompany.Api.Tests.TestData;
@@ -13,7 +12,7 @@ public static class CompanyTestData
     /// </summary>
     public static void SeedSingleCompany(AppDbContext context)
     {
-        var company = new CompanyBuilder()
+        var company = new Tests.Builders.CompanyBuilder()
             .AsTestCompany()
             .Build();
 
@@ -22,14 +21,50 @@ public static class CompanyTestData
     }
 
     /// <summary>
-    /// Seeds two companies (Company A and Company B)
+    /// Seeds the standard three companies (Acme, TechVision, Global Systems)
+    /// </summary>
+    public static void SeedStandardCompanies(AppDbContext context)
+    {
+        var companies = new[]
+        {
+            new Tests.Builders.CompanyBuilder().AsAcmeCorporation().Build(),
+            new Tests.Builders.CompanyBuilder().AsTechVisionInc().Build(),
+            new Tests.Builders.CompanyBuilder().AsGlobalSystemsLtd().Build()
+        };
+
+        context.Companies.AddRange(companies);
+        context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Seeds two test companies (A and B)
     /// </summary>
     public static void SeedMultipleCompanies(AppDbContext context)
     {
         var companies = new[]
         {
-            new CompanyBuilder().AsCompanyA().Build(),
-            new CompanyBuilder().AsCompanyB().Build()
+            new Tests.Builders.CompanyBuilder()
+                .WithId(1)
+                .WithName("Company A")
+                .WithDescription("First test company")
+                .WithAddress("123 Test St")
+                .WithCity("Testville")
+                .WithRegion("Test Region")
+                .WithCountry("Testland")
+                .WithPostalCode("12345")
+                .WithPhone("123-456-7890")
+                .Build(),
+            new Tests.Builders.CompanyBuilder()
+                .WithId(2)
+                .WithName("Company B")
+                .WithDescription("Second test company")
+                .WithAddress("456 Test Ave")
+                .WithCity("Testopolis")
+                .WithRegion("Test Region")
+                .WithCountry("Testland")
+                .WithPostalCode("67890")
+                .WithPhone("098-765-4321")
+                .Build()
         };
 
         context.Companies.AddRange(companies);
@@ -41,7 +76,7 @@ public static class CompanyTestData
     /// </summary>
     public static void SeedCompanyById(AppDbContext context, int id, string name)
     {
-        var company = new CompanyBuilder()
+        var company = new Tests.Builders.CompanyBuilder()
             .WithId(id)
             .WithName(name)
             .Build();
@@ -55,19 +90,14 @@ public static class CompanyTestData
     /// </summary>
     public static void SeedLargeDataset(AppDbContext context, int count = 100)
     {
-        var companies = new List<MyStartUpCompany.Persistence.Entities.Company>();
-
-        for (int i = 1; i <= count; i++)
-        {
-            var company = new CompanyBuilder()
+        var companies = Enumerable.Range(1, count)
+            .Select(i => new Tests.Builders.CompanyBuilder()
                 .WithId(i)
                 .WithName($"Company {i}")
                 .WithDescription($"Test company number {i}")
                 .WithCity($"City {i}")
-                .Build();
-
-            companies.Add(company);
-        }
+                .Build())
+            .ToArray();
 
         context.Companies.AddRange(companies);
         context.SaveChanges();

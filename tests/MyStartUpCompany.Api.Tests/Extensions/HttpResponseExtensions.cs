@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Json;
+using FluentAssertions;
 
 namespace MyStartUpCompany.Api.Tests.Extensions;
 
@@ -28,6 +30,11 @@ public static class HttpResponseExtensions
     public static void ShouldBeBadRequest(this HttpResponseMessage response)
     {
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    public static void ShouldBeNoContent(this HttpResponseMessage response)
+    {
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     public static async Task<T?> ReadAsJsonAsync<T>(this HttpResponseMessage response)
