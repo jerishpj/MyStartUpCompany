@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 
-namespace MyStartUpCompany.Api.Tests.Extensions;
+namespace MyStartUpCompany.Api.Tests.Shared.Extensions;
 
 /// <summary>
 /// Extension methods for HTTP response assertions

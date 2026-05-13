@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Persistence;
-using MyStartUpCompany.Api.Tests.Builders;
 
-namespace MyStartUpCompany.Api.Tests.Helpers;
+namespace MyStartUpCompany.Api.Tests.Shared.Helpers;
 
 /// <summary>
 /// Factory for creating in-memory database contexts for unit tests
@@ -38,9 +37,9 @@ public static class TestDbContextFactory
     {
         var companies = new[]
         {
-            new Builders.CompanyBuilder().AsAcmeCorporation().Build(),
-            new Builders.CompanyBuilder().AsTechVisionInc().Build(),
-            new Builders.CompanyBuilder().AsGlobalSystemsLtd().Build()
+            new CompanyBuilder().AsAcmeCorporation().Build(),
+            new CompanyBuilder().AsTechVisionInc().Build(),
+            new CompanyBuilder().AsGlobalSystemsLtd().Build()
         };
 
         context.Companies.AddRange(companies);

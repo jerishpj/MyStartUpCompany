@@ -1,7 +1,6 @@
 using MyStartUpCompany.Persistence;
-using MyStartUpCompany.Api.Tests.Builders;
 
-namespace MyStartUpCompany.Api.Tests.TestData;
+namespace MyStartUpCompany.Api.Tests.Shared.TestData;
 
 /// <summary>
 /// Centralized test data seeding scenarios for Employee-related tests

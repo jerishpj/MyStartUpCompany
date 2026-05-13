@@ -1,6 +1,5 @@
-using FluentAssertions;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
-using MyStartUpCompany.Api.Tests.Helpers;
+using MyStartUpCompany.Api.Tests.Shared.Helpers;
 using MyStartUpCompany.Persistence;
 
 namespace MyStartUpCompany.Api.Tests.Features.CompanyDetails.Queries;

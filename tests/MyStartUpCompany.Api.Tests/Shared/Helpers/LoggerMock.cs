@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace MyStartUpCompany.Api.Tests.Helpers;
+namespace MyStartUpCompany.Api.Tests.Shared.Helpers;
 
 public static class LoggerMock
 {

@@ -1,6 +1,6 @@
 using MyStartUpCompany.Persistence.Entities;
 
-namespace MyStartUpCompany.Api.Tests.Builders;
+namespace MyStartUpCompany.Api.Tests.Shared.TestData.Builders;
 
 /// <summary>
 /// Builder pattern for creating Company test data with sensible defaults

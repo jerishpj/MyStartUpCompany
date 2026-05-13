@@ -1,6 +1,6 @@
 using MyStartUpCompany.Persistence;
 
-namespace MyStartUpCompany.Api.Tests.TestData;
+namespace MyStartUpCompany.Api.Tests.Shared.TestData;
 
 /// <summary>
 /// Centralized test data seeding scenarios for Company-related tests
@@ -12,7 +12,7 @@ public static class CompanyTestData
     /// </summary>
     public static void SeedSingleCompany(AppDbContext context)
     {
-        var company = new Tests.Builders.CompanyBuilder()
+        var company = new CompanyBuilder()
             .AsTestCompany()
             .Build();
 
@@ -27,9 +27,9 @@ public static class CompanyTestData
     {
         var companies = new[]
         {
-            new Tests.Builders.CompanyBuilder().AsAcmeCorporation().Build(),
-            new Tests.Builders.CompanyBuilder().AsTechVisionInc().Build(),
-            new Tests.Builders.CompanyBuilder().AsGlobalSystemsLtd().Build()
+            new CompanyBuilder().AsAcmeCorporation().Build(),
+            new CompanyBuilder().AsTechVisionInc().Build(),
+            new CompanyBuilder().AsGlobalSystemsLtd().Build()
         };
 
         context.Companies.AddRange(companies);
@@ -43,7 +43,7 @@ public static class CompanyTestData
     {
         var companies = new[]
         {
-            new Tests.Builders.CompanyBuilder()
+            new CompanyBuilder()
                 .WithId(1)
                 .WithName("Company A")
                 .WithDescription("First test company")
@@ -54,7 +54,7 @@ public static class CompanyTestData
                 .WithPostalCode("12345")
                 .WithPhone("123-456-7890")
                 .Build(),
-            new Tests.Builders.CompanyBuilder()
+            new CompanyBuilder()
                 .WithId(2)
                 .WithName("Company B")
                 .WithDescription("Second test company")
@@ -76,7 +76,7 @@ public static class CompanyTestData
     /// </summary>
     public static void SeedCompanyById(AppDbContext context, int id, string name)
     {
-        var company = new Tests.Builders.CompanyBuilder()
+        var company = new CompanyBuilder()
             .WithId(id)
             .WithName(name)
             .Build();
@@ -91,7 +91,7 @@ public static class CompanyTestData
     public static void SeedLargeDataset(AppDbContext context, int count = 100)
     {
         var companies = Enumerable.Range(1, count)
-            .Select(i => new Tests.Builders.CompanyBuilder()
+            .Select(i => new CompanyBuilder()
                 .WithId(i)
                 .WithName($"Company {i}")
                 .WithDescription($"Test company number {i}")
