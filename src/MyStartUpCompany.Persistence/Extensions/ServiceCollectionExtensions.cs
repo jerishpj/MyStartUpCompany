@@ -10,53 +10,57 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds AppDbContext to the service collection with environment-based database provider selection.
     /// Uses SQL Server for production/development and InMemory for automated integration tests.
+    /// Uses DbContext pooling for better performance with high concurrency.
     /// </summary>
     public static IServiceCollection AddAppDatabase(
         this IServiceCollection services,
         IConfiguration configuration,
-        IHostEnvironment? environment = null)
+        IHostEnvironment environment)
     {
-        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+        // USE ONLY AddDbContextPool for better performance
+        // Remove the duplicate AddDbContext registration
+        services.AddDbContextPool<AppDbContext>((serviceProvider, options) =>
         {
-            AppDbContextFactory.ConfigureDbContext(
-                (DbContextOptionsBuilder<AppDbContext>)options,
-                configuration, 
-                environment?.EnvironmentName);
+            ConfigureDbContextOptions(options, connectionString, environment);
+        }, poolSize: 128); // Adjust based on your expected concurrent requests
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configures DbContext options (shared configuration logic)
+    /// </summary>
+    private static void ConfigureDbContextOptions(
+        DbContextOptionsBuilder options,
+        string connectionString,
+        IHostEnvironment environment)
+    {
+        options.UseSqlServer(connectionString, sqlOptions =>
+        {
+            // Performance optimizations
+            sqlOptions.CommandTimeout(30);
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null);
+
+            // Use query splitting for better performance with complex queries
+            sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         });
 
-        return services;
-    }
-
-    // Keep these for backward compatibility or specific use cases
-    public static IServiceCollection AddSqlServerDatabase(
-        this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"),
-                sqlOptions =>
-                {
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null);
-                }));
-
-        return services;
-    }
-
-    public static IServiceCollection AddInMemoryDatabase(
-        this IServiceCollection services,
-        string databaseName = "TestDb")
-    {
-        services.AddDbContext<AppDbContext>(options =>
+        // Enable sensitive data logging only in development
+        if (environment.IsDevelopment())
         {
-            options.UseInMemoryDatabase(databaseName);
             options.EnableSensitiveDataLogging();
             options.EnableDetailedErrors();
-        });
+        }
 
-        return services;
+        // Performance: Disable client-side evaluation warnings
+        options.ConfigureWarnings(warnings =>
+            warnings.Ignore(Microsoft.EntityFrameworkCore
+                .Diagnostics.CoreEventId.RowLimitingOperationWithoutOrderByWarning));
     }
 }

@@ -8,12 +8,12 @@ namespace MyStartUpCompany.Api.Tests.Shared.TestData;
 public static class CompanyTestData
 {
     /// <summary>
-    /// Seeds a single test company with ID 1
+    /// Seeds a single test company (ID auto-generated)
     /// </summary>
     public static void SeedSingleCompany(AppDbContext context)
     {
         var company = new CompanyBuilder()
-            .AsTestCompany()
+            .AsTestCompany() // Remove explicit ID
             .Build();
 
         context.Companies.Add(company);
@@ -21,7 +21,7 @@ public static class CompanyTestData
     }
 
     /// <summary>
-    /// Seeds the standard three companies (Acme, TechVision, Global Systems)
+    /// Seeds the standard three companies (IDs auto-generated)
     /// </summary>
     public static void SeedStandardCompanies(AppDbContext context)
     {
@@ -37,14 +37,14 @@ public static class CompanyTestData
     }
 
     /// <summary>
-    /// Seeds two test companies (A and B)
+    /// Seeds two test companies (IDs auto-generated)
     /// </summary>
     public static void SeedMultipleCompanies(AppDbContext context)
     {
         var companies = new[]
         {
             new CompanyBuilder()
-                .WithId(1)
+                // .WithId(1) - REMOVED
                 .WithName("Company A")
                 .WithDescription("First test company")
                 .WithAddress("123 Test St")
@@ -55,7 +55,7 @@ public static class CompanyTestData
                 .WithPhone("123-456-7890")
                 .Build(),
             new CompanyBuilder()
-                .WithId(2)
+                // .WithId(2) - REMOVED
                 .WithName("Company B")
                 .WithDescription("Second test company")
                 .WithAddress("456 Test Ave")
@@ -72,12 +72,11 @@ public static class CompanyTestData
     }
 
     /// <summary>
-    /// Seeds a specific company by ID and name
+    /// Seeds a specific company by name (ID auto-generated)
     /// </summary>
-    public static void SeedCompanyById(AppDbContext context, int id, string name)
+    public static void SeedCompanyByName(AppDbContext context, string name)
     {
         var company = new CompanyBuilder()
-            .WithId(id)
             .WithName(name)
             .Build();
 
@@ -92,7 +91,7 @@ public static class CompanyTestData
     {
         var companies = Enumerable.Range(1, count)
             .Select(i => new CompanyBuilder()
-                .WithId(i)
+                // Don't set explicit IDs - let database generate them
                 .WithName($"Company {i}")
                 .WithDescription($"Test company number {i}")
                 .WithCity($"City {i}")

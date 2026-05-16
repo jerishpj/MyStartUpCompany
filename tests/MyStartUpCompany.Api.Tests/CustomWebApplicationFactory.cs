@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MyStartUpCompany.Persistence;
@@ -23,7 +24,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         // Ensure database is created
         using (var scope = host.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>(); db.Database.Migrate();
             db.Database.EnsureCreated();
         }
 
@@ -57,15 +58,33 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     }
 
     /// <summary>
-    /// Seeds test data into the database
+    /// Seeds test data into the database with IDENTITY_INSERT support
     /// </summary>
     public void SeedTestData(Action<AppDbContext> seedAction)
     {
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        seedAction(context);
-        context.SaveChanges();
+        // Enable IDENTITY_INSERT for SQL Server (not needed for InMemory)
+        var isInMemory = context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory";
+        
+        if (!isInMemory)
+        {
+            context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Companies ON");
+        }
+
+        try
+        {
+            seedAction(context);
+            context.SaveChanges();
+        }
+        finally
+        {
+            if (!isInMemory)
+            {
+                context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Companies OFF");
+            }
+        }
     }
 
     /// <summary>

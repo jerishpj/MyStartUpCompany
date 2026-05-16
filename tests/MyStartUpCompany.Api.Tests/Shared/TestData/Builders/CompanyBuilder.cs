@@ -7,7 +7,7 @@ namespace MyStartUpCompany.Api.Tests.Shared.TestData.Builders;
 /// </summary>
 public class CompanyBuilder
 {
-    private int _id = 1;
+    private int? _id = null; // Changed to nullable - let database generate ID
     private string _name = "Default Company";
     private string? _description = "Default company description";
     private string _address = "123 Default Street";
@@ -76,7 +76,7 @@ public class CompanyBuilder
     /// </summary>
     public CompanyBuilder AsAcmeCorporation()
     {
-        _id = 1;
+        _id = null; // Let database generate ID
         _name = "Acme Corporation";
         _description = "Leading provider of innovative solutions";
         _address = "123 Main Street";
@@ -93,7 +93,7 @@ public class CompanyBuilder
     /// </summary>
     public CompanyBuilder AsTechVisionInc()
     {
-        _id = 2;
+        _id = null; // Let database generate ID
         _name = "TechVision Inc";
         _description = "Software development company";
         _address = "456 Tech Avenue";
@@ -110,7 +110,7 @@ public class CompanyBuilder
     /// </summary>
     public CompanyBuilder AsGlobalSystemsLtd()
     {
-        _id = 3;
+        _id = null; // Let database generate ID
         _name = "Global Systems Ltd";
         _description = "Enterprise solutions provider";
         _address = "789 Business Blvd";
@@ -125,9 +125,9 @@ public class CompanyBuilder
     /// <summary>
     /// Generic test company template
     /// </summary>
-    public CompanyBuilder AsTestCompany(int id = 1)
+    public CompanyBuilder AsTestCompany(int? id = null)
     {
-        _id = id;
+        _id = id; // Allow optional ID
         _name = "Test Company";
         _description = "A test company for integration testing";
         _address = "123 Test St";
@@ -141,9 +141,8 @@ public class CompanyBuilder
 
     public Company Build()
     {
-        return new Company
+        var company = new Company
         {
-            Id = _id,
             Name = _name,
             Description = _description,
             Address = _address,
@@ -153,23 +152,13 @@ public class CompanyBuilder
             PostalCode = _postalCode,
             Phone = _phone
         };
-    }
 
-    /// <summary>
-    /// Builds an anonymous object suitable for HTTP POST requests (no Id)
-    /// </summary>
-    public object BuildDto()
-    {
-        return new
+        // Only set Id if explicitly provided
+        if (_id.HasValue)
         {
-            Name = _name,
-            Description = _description,
-            Address = _address,
-            City = _city,
-            Region = _region,
-            Country = _country,
-            PostalCode = _postalCode,
-            Phone = _phone
-        };
+            company.Id = _id.Value;
+        }
+
+        return company;
     }
 }
