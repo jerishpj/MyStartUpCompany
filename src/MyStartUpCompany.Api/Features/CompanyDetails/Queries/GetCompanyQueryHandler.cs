@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Persistence;
-using MyStartUpCompany.Persistence.Entities;
 using Company = MyStartUpCompany.Persistence.Entities.Company;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
