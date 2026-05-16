@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Persistence;
 using MyStartUpCompany.Persistence.Entities;
+using Company = MyStartUpCompany.Persistence.Entities.Company;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 
@@ -18,7 +20,7 @@ public class GetCompanyQueryHandler : IGetCompanyQueryHandler
         _logger = logger;
     }
 
-    public async Task<CompanyDto> HandleAsync(int companyId, CancellationToken cancellationToken = default)
+    public async Task<Models.Company> HandleAsync(int companyId, CancellationToken cancellationToken = default)
     {
         if (companyId <= 0)
         {
@@ -40,9 +42,9 @@ public class GetCompanyQueryHandler : IGetCompanyQueryHandler
         return MapToDto(company);
     }
 
-    private static CompanyDto MapToDto(Company company)
+    private static Models.Company MapToDto(Persistence.Entities.Company company)
     {
-        return new CompanyDto
+        return new Models.Company
         {
             Id = company.Id,
             Name = company.Name,

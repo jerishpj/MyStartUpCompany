@@ -77,7 +77,7 @@ The solution includes a convenient PowerShell script (`scripts/ef.ps1`) to simpl
 #### Apply Migrations to Database
 
 ```
-.\scripts\migrations\update-database.ps1
+.\scripts\migrations\update-database
 ```
 
 This command applies all pending migrations to the database.
@@ -85,7 +85,7 @@ This command applies all pending migrations to the database.
 #### List All Migrations
 
 ```
-.\scripts\ef.ps1 list
+.\scripts\migrations\list-migrations
 ```
 
 Shows all migrations and their status (pending/applied).
@@ -93,7 +93,7 @@ Shows all migrations and their status (pending/applied).
 #### Remove Last Migration
 
 ```
-.\scripts\migrations\remove-migration.ps1
+.\scripts\migrations\remove-migration
 ```
 
 This command removes the last applied migration.

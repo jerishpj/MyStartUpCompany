@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Persistence;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries
@@ -14,13 +15,13 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries
             _logger = logger;
         }
 
-            public async Task<IEnumerable<CompanyDto>> HandleAsync(CancellationToken cancellationToken)
+            public async Task<IEnumerable<Company>> HandleAsync(CancellationToken cancellationToken)
             {
                 _logger.LogInformation("Retrieving all companies");
     
                 var companies = await _dbContext.Companies
                     .AsNoTracking()
-                    .Select(c => new CompanyDto
+                    .Select(c => new Company
                     {
                         Id = c.Id,
                         Name = c.Name,

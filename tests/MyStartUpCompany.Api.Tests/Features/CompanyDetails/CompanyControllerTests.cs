@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MyStartUpCompany.Api.Features.CompanyDetails;
+using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 using MyStartUpCompany.Api.Shared.Exceptions;
 
@@ -12,6 +13,7 @@ public class CompanyControllerTests
 {       
     private readonly Mock<IGetCompanyQueryHandler> _getCompanyHandlerMock;
     private readonly Mock<IGetAllCompaniesQueryHandler> _getAllCompaniesHandlerMock;
+    private readonly Mock<IGetFilteredCompaniesQueryHandler> _getFilteredCompaniesHandlerMock;
     private readonly Mock<ILogger<CompanyController>> _loggerMock;
     private readonly CompanyController _controller;
 
@@ -19,11 +21,13 @@ public class CompanyControllerTests
     {
         _getCompanyHandlerMock = new Mock<IGetCompanyQueryHandler>();
         _getAllCompaniesHandlerMock = new Mock<IGetAllCompaniesQueryHandler>();
+        _getFilteredCompaniesHandlerMock = new Mock<IGetFilteredCompaniesQueryHandler>();
         _loggerMock = new Mock<ILogger<CompanyController>>();
 
         _controller = new CompanyController(
             _getCompanyHandlerMock.Object,
             _getAllCompaniesHandlerMock.Object,
+            _getFilteredCompaniesHandlerMock.Object,
             _loggerMock.Object);
     }
 
@@ -32,7 +36,7 @@ public class CompanyControllerTests
     {
         // Arrange
         var companyId = 1;
-        var expectedCompany = new CompanyDto
+        var expectedCompany = new Company
         {
             Id = companyId,
             Name = "Test Company",
@@ -96,7 +100,7 @@ public class CompanyControllerTests
     public async Task GetAllCompanies_ReturnsOkResultWithCompanies()
     {
         // Arrange
-        var expectedCompanies = new List<CompanyDto>
+        var expectedCompanies = new List<Company>
         {
             new() { Id = 1, Name = "Company 1", Address = "Address 1", City = "City 1", PostalCode = "12345", Country = "Country 1", Phone = "+1-555-1111" },
             new() { Id = 2, Name = "Company 2", Address = "Address 2", City = "City 2", PostalCode = "67890", Country = "Country 2", Phone = "+1-555-2222" }
@@ -125,7 +129,7 @@ public class CompanyControllerTests
         // Arrange
         _getAllCompaniesHandlerMock
             .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<CompanyDto>());
+            .ReturnsAsync(new List<Company>());
 
         // Act
         var result = await _controller.GetAllCompanies(CancellationToken.None);
@@ -133,7 +137,7 @@ public class CompanyControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
-        var companies = okResult!.Value as IEnumerable<CompanyDto>;
+        var companies = okResult!.Value as IEnumerable<Company>;
         companies.Should().BeEmpty();
     }
 }

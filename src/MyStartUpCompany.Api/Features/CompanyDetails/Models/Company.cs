@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel;
 
-namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
+namespace MyStartUpCompany.Api.Features.CompanyDetails.Models;
 
 /// <summary>
 /// Represents a company's detailed information
 /// </summary>
-[Description("Company")]
-public record CompanyDto
+[DisplayName("Company")]
+public record Company
 {
     /// <summary>
     /// The unique identifier for the company

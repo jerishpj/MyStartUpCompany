@@ -1,0 +1,132 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  dotnetVersion: '10.x'
+  apiProjectPath: 'src/MyStartUpCompany.Api/MyStartUpCompany.Api.csproj'
+  persistenceProjectPath: 'src/MyStartUpCompany.Persistence/MyStartUpCompany.Persistence.csproj'
+  artifactName: 'api-drop'
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build and Test'
+    steps:
+
+    # Install .NET SDK
+    - task: UseDotNet@2
+      displayName: 'Install .NET 10 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '$(dotnetVersion)'
+
+    # Restore NuGet packages
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore NuGet Packages'
+      inputs:
+        command: 'restore'
+        projects: '**/*.csproj'
+
+    # Build the solution
+    - task: DotNetCoreCLI@2
+      displayName: 'Build Solution'
+      inputs:
+        command: 'build'
+        projects: '**/*.sln'
+        arguments: '--configuration $(buildConfiguration) --no-restore'
+
+    # Run Tests
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Unit Tests'
+      inputs:
+        command: 'test'
+        projects: '**/tests/**/*Tests.csproj'
+        arguments: '--configuration $(buildConfiguration) --no-build --collect:"XPlat Code Coverage"'
+
+    # Publish API
+    - task: DotNetCoreCLI@2
+      displayName: 'Publish API'
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: '$(apiProjectPath)'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/api --no-build'
+        zipAfterPublish: true
+
+    # Generate EF Core Migration SQL Script
+    - task: DotNetCoreCLI@2
+      displayName: 'Install EF Core Tools'
+      inputs:
+        command: 'custom'
+        custom: 'tool'
+        arguments: 'install --global dotnet-ef'
+
+    - task: PowerShell@2
+      displayName: 'Generate Migration SQL Script'
+      inputs:
+        targetType: 'inline'
+        script: |
+          dotnet ef migrations script --idempotent --project $(persistenceProjectPath) --startup-project $(apiProjectPath) --output $(Build.ArtifactStagingDirectory)/migrations/migration.sql
+
+    # Publish Artifacts
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish API Artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/api'
+        ArtifactName: '$(artifactName)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Migration Script'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/migrations'
+        ArtifactName: 'migrations'
+
+- stage: Deploy
+  displayName: 'Deploy to Azure'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployAPI
+    displayName: 'Deploy API to Azure App Service'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+
+          # Download Artifacts
+          - download: current
+            artifact: '$(artifactName)'
+
+          - download: current
+            artifact: 'migrations'
+
+          # Run Database Migration
+          - task: SqlAzureDacpacDeployment@1
+            displayName: 'Run EF Core Migrations'
+            inputs:
+              azureSubscription: 'YOUR-AZURE-SERVICE-CONNECTION' # Replace with your service connection name
+              authenticationType: 'servicePrincipal'
+              serverName: '$(sqlServerName)' # e.g., myserver.database.windows.net
+              databaseName: '$(sqlDatabaseName)'
+              deployType: 'SqlTask'
+              sqlFile: '$(Pipeline.Workspace)/migrations/migration.sql'
+
+          # Deploy to Azure App Service
+          - task: AzureWebApp@1
+            displayName: 'Deploy API to Azure App Service'
+            inputs:
+              azureSubscription: 'YOUR-AZURE-SERVICE-CONNECTION' # Replace with your service connection name
+              appType: 'webApp'
+              appName: '$(appServiceName)' # Your Azure App Service name
+              package: '$(Pipeline.Workspace)/$(artifactName)/**/*.zip'
+              deploymentMethod: 'auto'

@@ -28,6 +28,7 @@ public partial class Program
         // Register query handlers
         builder.Services.AddScoped<IGetCompanyQueryHandler, GetCompanyQueryHandler>();
         builder.Services.AddScoped<IGetAllCompaniesQueryHandler, GetAllCompaniesQueryHandler>();
+        builder.Services.AddScoped<IGetFilteredCompaniesQueryHandler, GetFilteredCompaniesQueryHandler>();
 
         // Configure OpenAPI
         builder.Services.AddOpenApi();
