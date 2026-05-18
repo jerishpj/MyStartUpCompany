@@ -1,0 +1,80 @@
+parameters:
+  - name: azureSubscription
+    type: string
+  - name: webAppName
+    type: string
+  - name: containerRegistry
+    type: string
+  - name: imageName
+    type: string
+  - name: imageTag
+    type: string
+  - name: sqlConnectionString
+    type: string
+
+steps:
+  # Download build artifacts
+  - download: current
+    artifact: drop
+
+  # Run EF Core Migrations BEFORE deploying the app
+  - task: AzureCLI@2
+    displayName: 'Run Database Migrations'
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        # Make the bundle executable
+        chmod +x $(Pipeline.Workspace)/drop/efbundle
+
+        # Run migrations with connection string
+        $(Pipeline.Workspace)/drop/efbundle --connection "${{ parameters.sqlConnectionString }}"
+
+        echo "✅ Database migrations completed successfully"
+
+  # Deploy container to Azure App Service
+  - task: AzureWebAppContainer@1
+    displayName: 'Deploy API to Azure App Service'
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      appName: '${{ parameters.webAppName }}'
+      containers: '${{ parameters.containerRegistry }}/${{ parameters.imageName }}:${{ parameters.imageTag }}'
+
+  # Update App Service Configuration
+  - task: AzureAppServiceSettings@1
+    displayName: 'Configure App Service Settings'
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      appName: '${{ parameters.webAppName }}'
+      resourceGroupName: '$(resourceGroup)'
+      connectionStrings: |
+        [
+          {
+            "name": "DefaultConnection",
+            "value": "${{ parameters.sqlConnectionString }}",
+            "type": "SQLAzure",
+            "slotSetting": false
+          }
+        ]
+      appSettings: |
+        [
+          {
+            "name": "ASPNETCORE_ENVIRONMENT",
+            "value": "Production",
+            "slotSetting": false
+          },
+          {
+            "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
+            "value": "true",
+            "slotSetting": false
+          }
+        ]
+
+  # Restart App Service to apply new configuration
+  - task: AzureAppServiceManage@0
+    displayName: 'Restart App Service'
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      Action: 'Restart Azure App Service'
+      WebAppName: '${{ parameters.webAppName }}'
