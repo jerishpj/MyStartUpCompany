@@ -414,3 +414,7 @@ appsettings.*.json
 !.config/
 !.config/dotnet-tools.json
 
+# Ignore Input and Processed folders
+**/Input/
+**/Processed/
+

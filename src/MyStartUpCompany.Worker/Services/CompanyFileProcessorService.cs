@@ -52,36 +52,58 @@ namespace MyStartUpCompany.Worker.Services
                 // Read and deserialize JSON
                 var jsonContent = await File.ReadAllTextAsync(filePath, cancellationToken);
 
-                var companyDto = JsonSerializer.Deserialize<CompanyInputDto>(jsonContent, new JsonSerializerOptions
+                var companies = JsonSerializer.Deserialize<List<CompanyInputDto>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
 
-                if (companyDto == null)
+                if (companies == null || companies.Count == 0)
                 {
                     _logger.LogWarning("Failed to deserialize {FileName}. File is empty or invalid", fileName);
                     MoveToProcessed(filePath, "invalid");
                     return;
                 }
 
-                // Validate required fields
-                if (string.IsNullOrWhiteSpace(companyDto.Name) ||
-                    string.IsNullOrWhiteSpace(companyDto.Address) ||
-                    string.IsNullOrWhiteSpace(companyDto.City) ||
-                    string.IsNullOrWhiteSpace(companyDto.PostalCode) ||
-                    string.IsNullOrWhiteSpace(companyDto.Country) ||
-                    string.IsNullOrWhiteSpace(companyDto.Phone))
+                _logger.LogInformation("Found {Count} companies in {FileName}", companies.Count, fileName);
+
+                int successCount = 0;
+                int duplicateCount = 0;
+                int invalidCount = 0;
+
+                foreach (var companyDto in companies)
                 {
-                    _logger.LogWarning("Required fields missing in {FileName}", fileName);
-                    MoveToProcessed(filePath, "invalid");
-                    return;
+                    // Validate required fields
+                    if (string.IsNullOrWhiteSpace(companyDto.Name) ||
+                        string.IsNullOrWhiteSpace(companyDto.Address) ||
+                        string.IsNullOrWhiteSpace(companyDto.City) ||
+                        string.IsNullOrWhiteSpace(companyDto.PostalCode) ||
+                        string.IsNullOrWhiteSpace(companyDto.Country) ||
+                        string.IsNullOrWhiteSpace(companyDto.Phone))
+                    {
+                        _logger.LogWarning("Required fields missing for company in {FileName}", fileName);
+                        invalidCount++;
+                        continue;
+                    }
+
+                    // Process the company
+                    var success = await _handler.HandleAsync(companyDto, cancellationToken);
+
+                    if (success)
+                        successCount++;
+                    else
+                        duplicateCount++;
                 }
 
-                // Process the company
-                var success = await _handler.HandleAsync(companyDto, cancellationToken);
+                _logger.LogInformation("Processed {FileName}: {Success} success, {Duplicate} duplicates, {Invalid} invalid",
+                    fileName, successCount, duplicateCount, invalidCount);
+
+                // Determine file status
+                string status = invalidCount == companies.Count ? "invalid" :
+                                successCount > 0 ? "success" :
+                                duplicateCount > 0 ? "duplicate" : "invalid";
 
                 // Move file to processed folder
-                MoveToProcessed(filePath, success ? "success" : "duplicate");
+                MoveToProcessed(filePath, status);
             }
             catch (JsonException ex)
             {
