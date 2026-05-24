@@ -1,0 +1,6 @@
+@MyStartUpCompany.Notifier_HostAddress = http://localhost:5088
+
+GET {{MyStartUpCompany.Notifier_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/MyStartUpCompany.Api/MyStartUpCompany.Api.csproj" Id="527ebe9e-9332-4eb9-b577-ce65a84855e7" />
+    <Project Path="src/MyStartUpCompany.Notifier/MyStartUpCompany.Notifier.csproj" Id="1bd7ba10-97d9-42a3-9abe-849b7c1aa00f" />
     <Project Path="src/MyStartUpCompany.Persistence/MyStartUpCompany.Persistence.csproj" />
     <Project Path="src/MyStartUpCompany.Worker/MyStartUpCompany.Worker.csproj" Id="e32139e4-491d-436e-a571-a8ddd53ac81f" />
   </Folder>

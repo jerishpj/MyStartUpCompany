@@ -1,9 +1,4 @@
 using MyStartUpCompany.Worker.Services;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace MyStartUpCompany.Worker
 {
@@ -32,13 +27,13 @@ namespace MyStartUpCompany.Worker
                         await fileProcessor.ProcessFilesAsync(stoppingToken);
                     }
 
-                    // Wait for 10 seconds before next check
-                    await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                    // Wait for 10 minutes before next check
+                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error occurred in Worker execution");
-                    await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
                 }
             }
 

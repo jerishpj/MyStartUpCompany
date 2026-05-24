@@ -402,19 +402,72 @@ FodyWeavers.xsd
 # Scripts are version controlled so team can use them
 # !scripts/
 
-# Custom - Application settings that might contain sensitive data
-# Uncomment the line below if appsettings.json contains production secrets
-# appsettings.json
-appsettings.Development.json
+# ============================================================================
+# SECRETS & SENSITIVE DATA - CRITICAL FOR SECURITY
+# ============================================================================
+
+# Environment-specific configuration files
 appsettings.Production.json
 appsettings.*.json
 !appsettings.json
+!appsettings.Development.json
+!appsettings.Docker.json
+
+# Docker environment files (contains secrets)
+.env
+.env.local
+.env.*.local
+.env.prod
+.env.production
+
+# User Secrets (local machine only - never commit)
+# Location: %APPDATA%\Microsoft\UserSecrets or ~/.microsoft/usersecrets
+# These are automatically excluded by .NET SDK, but explicitly listed for clarity
+secrets.json
+*.secrets.json
+
+# Azure Key Vault local development
+local.settings.json
+appsettings.keyvault.json
+
+# AWS Secrets Manager
+aws-secrets.json
+
+# Generic secrets files
+*.secret
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.password
+credentials.json
+secrets.*.json
+!secrets.example.json
+
+# Database connection strings with passwords
+connection-strings.json
+
+# CI/CD local secrets (if stored locally for testing)
+ci-secrets.json
 
 # Keep the .config folder for dotnet tools
 !.config/
 !.config/dotnet-tools.json
 
+# ============================================================================
+# APPLICATION DATA
+# ============================================================================
+
 # Ignore Input and Processed folders
 **/Input/
 **/Processed/
+
+# Database files
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.sqlite
+*.sqlite3
 
