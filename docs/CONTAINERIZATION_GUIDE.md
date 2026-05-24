@@ -1,352 +1,416 @@
-# Containerization Guide for MyStartUpCompany
+﻿# Containerization Guide
 
-This guide explains how to containerize and run the MyStartUpCompany.Api and MyStartUpCompany.Worker services using Docker and Docker Compose.
+This guide covers building and running MyStartUpCompany in Docker containers.
 
 ## Prerequisites
 
-- Docker Desktop or Docker Engine installed (version 20.10+)
-- Docker Compose installed (version 2.0+)
-- .NET 10 SDK (for building locally without containers)
+- Docker Desktop or Docker Engine (version 20.10+)
+- Docker Compose (version 2.0+)
+- Git
 
-## Project Structure
+## Quick Start
 
-```
-src/
-├── MyStartUpCompany.Api/          # REST API service
-│   ├── Dockerfile                 # Multi-stage build for API
-│   ├── appsettings.json           # Base configuration
-│   ├── appsettings.Development.json
-│   └── appsettings.Production.json
-├── MyStartUpCompany.Worker/       # Background worker service
-│   ├── Dockerfile                 # Multi-stage build for Worker
-│   ├── appsettings.json           # Base configuration
-│   ├── appsettings.Development.json
-│   └── appsettings.Production.json
-└── MyStartUpCompany.Persistence/  # Shared EF Core data layer
-	└── Migrations/                # Database migrations
-```
-
----
-
-## Quick Start: Local Development with Docker Compose
-
-### 1. Build and Start All Services
+Run everything locally with Docker Compose:
 
 ```bash
-# Build all containers and start services in detached mode
+# Build and start all services
 docker-compose up -d
 
-# Or with verbose output (for debugging)
-docker-compose up
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
 ```
 
-This will:
-- Build the API container from `src/MyStartUpCompany.Api/Dockerfile`
-- Build the Worker container from `src/MyStartUpCompany.Worker/Dockerfile`
-- Start all services in the `mystartupcompany-network`
-- Create volumes for Worker file processing (`worker-input`, `worker-processed`)
+This starts:
+- SQL Server database
+- API service
+- Worker service
+- Migration runner
 
-### 2. Verify Services are Running
+## Building Docker Images
+
+### Build All Images
 
 ```bash
-# List running containers
+docker-compose build
+```
+
+### Build Specific Service
+
+**API Service:**
+```bash
+docker build -f src/MyStartUpCompany.Api/Dockerfile -t mystartupcompany-api:latest .
+```
+
+**Worker Service:**
+```bash
+docker build -f src/MyStartUpCompany.Worker/Dockerfile -t mystartupcompany-worker:latest .
+```
+
+**MigrationRunner:**
+```bash
+docker build -f src/MigrationRunner/Dockerfile -t mystartupcompany-migrations:latest .
+```
+
+## Running Containers
+
+### Run With Docker Compose
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View service status
 docker-compose ps
 
-# Check API is responsive
-curl http://localhost:8080/openapi/v1.json
-
-# View API logs
+# View logs for specific service
 docker-compose logs -f api
-
-# View Worker logs
 docker-compose logs -f worker
-```
+docker-compose logs -f mssql
 
-### 3. Stop Services
-
-```bash
-# Stop all services (containers remain)
-docker-compose stop
-
-# Stop and remove all containers, networks, volumes
+# Stop all services
 docker-compose down
 
-# Remove volumes as well (caution: deletes data)
+# Stop and remove volumes
 docker-compose down -v
 ```
 
----
+### Run Individual Container
 
-## Building Individual Containers
-
-### Build API Container Only
-
+**Run API:**
 ```bash
-# Build the API image
-docker build -t mystartupcompany-api:latest -f src/MyStartUpCompany.Api/Dockerfile .
-
-# Run the API container
 docker run -d \
-  --name mystartupcompany-api \
+  --name api \
   -p 8080:8080 \
   -e ASPNETCORE_ENVIRONMENT=Development \
-  -e "ConnectionStrings__DefaultConnection=Data Source=tcp:127.0.0.1,1433;Initial Catalog=MyStartUpCompanyDb;User ID=sa;Password=P@ssw0rd123!;Encrypt=false;TrustServerCertificate=true;" \
+  -e "ConnectionStrings__DefaultConnection=Server=localhost;Database=MyDb;..." \
   mystartupcompany-api:latest
 ```
 
-### Build Worker Container Only
-
+**Run Worker:**
 ```bash
-# Build the Worker image
-docker build -t mystartupcompany-worker:latest -f src/MyStartUpCompany.Worker/Dockerfile .
-
-# Run the Worker container
 docker run -d \
-  --name mystartupcompany-worker \
-  -e DOTNET_ENVIRONMENT=Development \
-  -e "ConnectionStrings__DefaultConnection=Data Source=tcp:127.0.0.1,1433;Initial Catalog=MyStartUpCompanyDb;User ID=sa;Password=P@ssw0rd123!;Encrypt=false;TrustServerCertificate=true;" \
-  -v /path/to/worker-input:/app/Input \
-  -v /path/to/worker-processed:/app/Processed \
+  --name worker \
+  -e ASPNETCORE_ENVIRONMENT=Development \
+  -e "ConnectionStrings__DefaultConnection=Server=localhost;Database=MyDb;..." \
   mystartupcompany-worker:latest
 ```
 
----
+**Run Migrations:**
+```bash
+docker run --rm \
+  -e "ConnectionStrings__DefaultConnection=Server=localhost;Database=MyDb;..." \
+  mystartupcompany-migrations:latest
+```
+
+## Docker Compose Configuration
+
+### File Structure
+
+```
+docker-compose.yml              Main orchestration file
+docker-compose.override.yml     Development overrides (optional)
+.env.example                    Environment variables template
+.dockerignore                   Docker build exclusions
+```
+
+### Services
+
+**mssql** - SQL Server database
+- Image: mcr.microsoft.com/mssql/server:2022-latest
+- Port: 1433
+- Volume: sqlserver_data
+
+**api** - REST API service
+- Built from src/MyStartUpCompany.Api/Dockerfile
+- Port: 8080
+- Depends on: mssql
+
+**worker** - Background worker service
+- Built from src/MyStartUpCompany.Worker/Dockerfile
+- Depends on: mssql
 
 ## Configuration via Environment Variables
 
-Both containers support configuration through environment variables. The .NET configuration system automatically loads these with the format `ConnectionStrings__DefaultConnection`, `AzureServiceBus__ConnectionString`, etc.
+Create `.env` file for local development:
 
-### API Container Environment Variables
+```bash
+# Database
+DB_USER=sa
+DB_PASSWORD=YourPassword123!
+DB_NAME=MyStartUpCompanyDb
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ASPNETCORE_ENVIRONMENT` | Environment name (Development/Staging/Production) | `Production` |
-| `ASPNETCORE_URLS` | URLs to listen on | `http://+:8080` |
-| `ConnectionStrings__DefaultConnection` | SQL Server connection string | (empty) |
-| `Logging__LogLevel__Default` | Default log level | `Warning` |
+# API
+API_PORT=8080
+ASPNETCORE_ENVIRONMENT=Development
 
-### Worker Container Environment Variables
+# Logging
+LOG_LEVEL=Information
+```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DOTNET_ENVIRONMENT` | Environment name (Development/Staging/Production) | `Production` |
-| `ConnectionStrings__DefaultConnection` | SQL Server connection string | (empty) |
-| `AzureServiceBus__ConnectionString` | Service Bus connection string | (empty) |
-| `AzureServiceBus__TopicName` | Topic name | `companycreatedevent` |
-| `AzureServiceBus__SubscriptionName` | Subscription name | `worker-subscription` |
-| `AzureServiceBus__MaxConcurrentCalls` | Max concurrent message handlers | `5` |
-| `AzureServiceBus__AutoCompleteMessages` | Auto-complete processed messages | `false` |
-| `Logging__LogLevel__Default` | Default log level | `Warning` |
+Load with docker-compose:
+```bash
+docker-compose --env-file .env up
+```
 
----
+## Dockerfile Best Practices
 
-## Database Configuration
+### Multi-Stage Build
 
-### Using Local SQL Server (Docker Compose)
+```dockerfile
+# Stage 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish -c Release -o /app/publish
 
-Uncomment the `mssql` service in `docker-compose.yml`:
+# Stage 2: Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "MyStartUpCompany.Api.dll"]
+```
+
+**Benefits:**
+- Smaller final image (SDK removed)
+- Faster deployments
+- Better security
+
+## Port Mapping
+
+| Service | Internal Port | External Port |
+|---------|---------------|---------------|
+| API | 8080 | 8080 |
+| Database | 1433 | 1433 |
+
+Access locally:
+- **API**: http://localhost:8080
+- **Database**: localhost:1433
+
+## Networking
+
+### Docker Compose Network
+
+Services communicate via service names:
+
+```
+api ──→ mssql
+worker ──→ mssql
+```
+
+**Connection string in container:**
+```
+Server=mssql,1433;Database=MyStartUpCompanyDb;User Id=sa;Password=...
+```
+
+## Volumes
+
+### Data Persistence
+
+Database volume keeps data across container restarts:
 
 ```yaml
-mssql:
-  image: mcr.microsoft.com/mssql/server:2022-latest
-  environment:
-	SA_PASSWORD: P@ssw0rd123!
-	ACCEPT_EULA: Y
-  ports:
-	- "1433:1433"
+volumes:
+  sqlserver_data:
+    driver: local
 ```
 
-Then apply migrations:
+## Debugging
+
+### View Container Logs
 
 ```bash
-# Inside the container or with dotnet CLI
-dotnet ef database update --project src/MyStartUpCompany.Persistence
+# Follow logs (tail -f)
+docker-compose logs -f api
+
+# Show last 100 lines
+docker-compose logs --tail 100 api
 ```
 
-### Using Azure SQL Database
-
-Set the connection string via environment variable:
+### Execute Commands in Container
 
 ```bash
-export DB_CONNECTION_STRING="Server=tcp:your-server.database.windows.net,1433;Initial Catalog=MyStartUpCompanyDb;Persist Security Info=False;User ID=youradmin;Password=YourPassword;MultipleActiveResultSets=False;Encrypt=True;Connection Timeout=30;"
+# Run command
+docker-compose exec api ls -la
 
-docker-compose up -d
+# Interactive shell
+docker-compose exec api /bin/bash
+
+# Run migration inside container
+docker-compose exec mssql sqlcmd -S localhost -U sa -P "password" -Q "SELECT name FROM sys.databases"
 ```
 
----
-
-## Azure Service Bus Configuration
-
-### Setting Service Bus Connection in Docker Compose
-
-Add to your `.env` file or pass as environment variables:
+### Inspect Container
 
 ```bash
-export SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=YourKey=="
-export SERVICE_BUS_TOPIC_NAME="companycreatedevent"
-export SERVICE_BUS_SUBSCRIPTION_NAME="worker-subscription"
+# See environment variables
+docker inspect api | grep Env
 
-docker-compose up -d
+# See mounts
+docker inspect api | grep Mounts
+
+# See network settings
+docker inspect api | grep Network
 ```
 
-Or create a `.env` file in the repository root:
+## Performance Optimization
+
+### Multi-stage Builds
+
+Reduces image size:
+```
+Before: 500 MB (includes SDK)
+After: 200 MB (runtime only)
+```
+
+### Image Caching
+
+Optimize layer caching:
+```dockerfile
+# Good: caches restore
+COPY src/MyStartUpCompany.csproj .
+RUN dotnet restore
+COPY . .
+RUN dotnet publish
+```
+
+### Resource Limits
+
+```bash
+docker run \
+  --memory 512m \
+  --cpus 1 \
+  mystartupcompany-api:latest
+```
+
+## Security Considerations
+
+### Don't Hardcode Secrets
+
+Use environment variables instead of hardcoded secrets in Dockerfile.
+
+### Use .dockerignore
 
 ```
-DB_CONNECTION_STRING=Data Source=tcp:127.0.0.1,1433;Initial Catalog=MyStartUpCompanyDb;User ID=sa;Password=P@ssw0rd123!;Encrypt=false;TrustServerCertificate=true;
-SERVICE_BUS_CONNECTION_STRING=Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=YourKey==
-SERVICE_BUS_TOPIC_NAME=companycreatedevent
-SERVICE_BUS_SUBSCRIPTION_NAME=worker-subscription
+.git
+.gitignore
+.vs
+bin/
+obj/
+*.user
+.env
+secrets.json
 ```
 
-Docker Compose will automatically load variables from `.env`.
+### Non-Root User
 
----
-
-## Container Image Details
-
-### API Container (`mystartupcompany-api`)
-
-**Base Image:** `mcr.microsoft.com/dotnet/aspnet:10.0-alpine`
-
-**Key Features:**
-- Multi-stage build for minimal image size (~200MB)
-- Non-root user (`dotnetuser:1000`) for enhanced security
-- Health check configured (checks OpenAPI endpoint)
-- Exposes port 8080 (HTTP) and 8081 (HTTPS)
-
-**Build Process:**
-1. **Build Stage:** Compiles .NET code using SDK
-2. **Publish Stage:** Creates optimized publish output
-3. **Runtime Stage:** Copies only required files to minimal Alpine image
-
-**Image Size:** ~200-250MB (with curl for health checks)
-
-### Worker Container (`mystartupcompany-worker`)
-
-**Base Image:** `mcr.microsoft.com/dotnet/runtime:10.0-alpine`
-
-**Key Features:**
-- Multi-stage build for minimal image size (~180MB)
-- Uses runtime image (no ASP.NET Core)
-- Non-root user for security
-- Pre-creates Input/Processed folders for file processing
-- No exposed ports (background service)
-
-**Build Process:**
-1. **Build Stage:** Compiles .NET code
-2. **Publish Stage:** Creates optimized output
-3. **Runtime Stage:** Copies only runtime files
-
-**Image Size:** ~180-220MB
-
----
+```dockerfile
+RUN useradd -m appuser
+USER appuser
+```
 
 ## Troubleshooting
+
+### Port Already in Use
+
+```bash
+# Find process using port 8080
+lsof -i :8080
+
+# Kill process
+kill -9 <PID>
+
+# Or use different port
+docker run -p 9000:8080 ...
+```
 
 ### Container Won't Start
 
 ```bash
-# Check container logs
-docker logs <container-id>
+# Check logs
+docker logs <container_id>
 
-# Get more details
-docker inspect <container-id>
+# Check exit code
+docker inspect <container_id> | grep ExitCode
 
-# Run interactively to debug
-docker run -it --entrypoint /bin/sh mystartupcompany-api:latest
+# Run with interactive shell for debugging
+docker run -it mystartupcompany-api:latest /bin/bash
 ```
 
-### Database Connection Issues
+### Database Connection Failed
 
 ```bash
-# Test connection from inside container
-docker exec <container-id> curl -v http://localhost:8080/openapi/v1.json
+# Verify database is running
+docker-compose ps mssql
 
-# Verify environment variables
-docker exec <container-id> env | grep Connection
+# Test connection from app container
+docker-compose exec api bash
+# Inside container:
+sqlcmd -S mssql -U sa -P "password" -Q "SELECT 1"
 ```
 
-### Service Bus Connection Failed
-
-1. Verify connection string format: `Endpoint=sb://namespace.servicebus.windows.net/;...`
-2. Check that topic and subscription exist
-3. Verify shared access key has `Listen` and `Send` permissions
-4. Check firewall rules allow connection from container
-
-### Volume Mount Issues (Worker)
+### Out of Disk Space
 
 ```bash
-# Check volume mount is working
-docker exec mystartupcompany-worker ls -la /app/Input
+# See disk usage
+docker system df
 
-# Verify files are synced from host
-ls -la ./worker-input/
+# Clean up unused images
+docker image prune -a
+
+# Clean up volumes
+docker volume prune
+
+# Full cleanup
+docker system prune -a --volumes
 ```
 
----
+## Production Deployment
 
-## Docker Compose Networking
-
-All services communicate through the `mystartupcompany-network` bridge network:
-
-- **API Container:** Accessible as `api:8080` within the network
-- **Worker Container:** Accessible as `worker` within the network
-- **Service Bus:** Uses environment variables for connection
-
-To test connectivity between containers:
+### Push to Registry
 
 ```bash
-# Ping from Worker to API
-docker exec mystartupcompany-worker curl http://api:8080/openapi/v1.json
+# Tag image
+docker tag mystartupcompany-api:latest myregistry.azurecr.io/mystartupcompany-api:latest
+
+# Login to registry
+docker login myregistry.azurecr.io
+
+# Push image
+docker push myregistry.azurecr.io/mystartupcompany-api:latest
 ```
 
----
+### Deploy to Azure Container Instances
 
-## Security Best Practices
+```bash
+az container create \
+  --resource-group mygroup \
+  --name mystartupcompany-api \
+  --image myregistry.azurecr.io/mystartupcompany-api:latest \
+  --ports 8080 \
+  --environment-variables ASPNETCORE_ENVIRONMENT=Production
+```
 
-1. **Non-Root User:** Both containers run as `dotnetuser:1000` (not root)
-2. **Minimal Base Images:** Alpine-based images reduce attack surface
-3. **Multi-Stage Builds:** Only runtime dependencies in final image
-4. **Environment Variables:** Secrets injected at runtime, not in images
-5. **Health Checks:** API container includes health checks for orchestration
-6. **.dockerignore:** Excludes unnecessary files from build context
+### Deploy to Kubernetes (AKS)
 
----
+```bash
+# Create deployment
+kubectl create deployment api --image=myregistry.azurecr.io/mystartupcompany-api:latest
 
-## Performance Optimization
+# Expose service
+kubectl expose deployment api --port=8080 --type=LoadBalancer
 
-### Image Size Reduction
+# View status
+kubectl get pods
+kubectl get services
+```
 
-- Alpine base images: ~50MB (vs ~700MB for full Framework)
-- Multi-stage builds: Only production dependencies in final image
-- .dockerignore: Eliminates unnecessary files from build context
+## Related Documentation
 
-### Build Speed
-
-- Separate restore step: Docker caches dependency layer
-- Project file copying before source: Maximizes layer caching
-
-### Runtime Performance
-
-- Alpine Linux: Minimal overhead
-- Non-root user: Required for Kubernetes and security scanning
-
----
-
-## Next Steps
-
-1. **Local Testing:** Run `docker-compose up` and verify both services work
-2. **Azure Deployment:** Use these images with Azure Container Registry (ACR) and Azure Container Instances (ACI) or App Service
-3. **CI/CD Integration:** Add Docker build steps to your GitHub Actions or Azure Pipelines
-4. **Kubernetes:** Deploy containers to AKS with proper health checks and resource limits
-
-See `docs/AZURE_DEPLOYMENT_GUIDE.md` for Azure-specific deployment instructions (coming in next phase).
-
----
-
-## References
-
-- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [.NET in Docker](https://github.com/dotnet/dotnet-docker)
-- [Docker Compose Documentation](https://docs.docker.com/compose/)
-- [Alpine Linux in Containers](https://alpinelinux.org/)
+- [Local Development Guide](LOCAL_DEVELOPMENT.md) - Development setup
+- [Migration Strategy](MIGRATION_STRATEGY.md) - Database management
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Production deployment
+- [Architecture & Design](ARCHITECTURE.md) - Technical decisions
