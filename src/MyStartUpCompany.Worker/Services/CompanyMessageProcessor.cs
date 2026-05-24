@@ -32,6 +32,13 @@ namespace MyStartUpCompany.Worker.Services
             string sourceIdentifier,
             CancellationToken cancellationToken = default)
         {
+            // Handle null input
+            if (companyDto == null)
+            {
+                _logger.LogWarning("Null CompanyInputDto received from source '{Source}'", sourceIdentifier);
+                return CompanyProcessingResult.Invalid("Company data is null");
+            }
+
             // Validate required fields
             var validationResult = ValidateCompanyData(companyDto);
             if (!validationResult.IsValid)
