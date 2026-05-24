@@ -1,0 +1,159 @@
+---
+# Worker Service Deployment
+# Worker is a background service using BackgroundService pattern
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: mystartup
+  labels:
+    app: worker
+    tier: backend
+spec:
+  # Single replica for worker (can scale based on workload)
+  # Note: Use StatefulSet if worker needs persistent state/storage
+  replicas: 1
+
+  # Update strategy - use Recreate for stateful workloads
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Pod selector
+  selector:
+    matchLabels:
+      app: worker
+      tier: backend
+
+  template:
+    metadata:
+      labels:
+        app: worker
+        tier: backend
+      annotations:
+        description: "Background worker service for processing jobs and events"
+
+    spec:
+      # Service account (can be used for Managed Identity)
+      serviceAccountName: worker
+
+      # Pod security
+      securityContext:
+        fsGroup: 1000
+
+      # Container specification
+      containers:
+      - name: worker
+        image: mystartupregistry.azurecr.io/worker:latest
+        imagePullPolicy: Always
+
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: app-config
+
+        # Environment variables from Secrets and additional configs
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: database-connection-string
+
+        - name: AzureServiceBusSettings__ConnectionString
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: azure-servicebus-connectionstring
+
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+
+        # Volume mounts for input/output folders
+        volumeMounts:
+        - name: input-volume
+          mountPath: /app/Input
+        - name: processed-volume
+          mountPath: /app/Processed
+        - name: tmp-volume
+          mountPath: /tmp
+
+        # Resource requests and limits
+        # Worker typically needs more memory than API
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+
+        # Security context for worker container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+
+      # Volumes for worker
+      # Note: If you need persistent storage across pod restarts, use PersistentVolumeClaim
+      volumes:
+      - name: input-volume
+        emptyDir: {}
+      - name: processed-volume
+        emptyDir: {}
+      - name: tmp-volume
+        emptyDir: {}
+
+      # Restart policy
+      restartPolicy: Always
+
+      # Termination grace period (give time for graceful shutdown)
+      terminationGracePeriodSeconds: 30
+
+---
+# Service Account for Worker
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: worker
+  namespace: mystartup
+  labels:
+    app: worker
+
+---
+# Horizontal Pod Autoscaler for Worker
+# Uncomment if you want autoscaling based on workload
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: worker-hpa
+  namespace: mystartup
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: worker
+
+  minReplicas: 1
+  maxReplicas: 3
+
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85

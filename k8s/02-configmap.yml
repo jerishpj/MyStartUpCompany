@@ -1,0 +1,33 @@
+---
+# ConfigMap for non-sensitive configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: mystartup
+  labels:
+    app: mystartup
+    component: config
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft: "Warning"
+  API_PORT: "8080"
+  LOG_LEVEL: "Information"
+
+---
+# Ingress config (optional - for future use)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: mystartup
+data:
+  nginx.conf: |
+    server {
+      listen 80;
+      location / {
+        proxy_pass http://api-service:80;
+        proxy_set_header Host $host;
+      }
+    }

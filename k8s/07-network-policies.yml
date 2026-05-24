@@ -1,0 +1,82 @@
+---
+# Network Policy - restrict ingress traffic to API
+# Optional: Enable if you want fine-grained network control
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-network-policy
+  namespace: mystartup
+spec:
+  podSelector:
+    matchLabels:
+      app: api
+
+  policyTypes:
+  - Ingress
+  - Egress
+
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 8080
+
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+
+  # Allow outbound to database and services
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 1433
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+
+---
+# Network Policy - restrict ingress traffic to Worker
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: worker-network-policy
+  namespace: mystartup
+spec:
+  podSelector:
+    matchLabels:
+      app: worker
+
+  policyTypes:
+  - Ingress
+  - Egress
+
+  # Worker doesn't accept ingress traffic (background service)
+  ingress: []
+
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+
+  # Allow outbound to database and Azure services
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 1433
+    - protocol: TCP
+      port: 443

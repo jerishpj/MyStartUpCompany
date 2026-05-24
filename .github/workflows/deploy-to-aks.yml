@@ -1,0 +1,318 @@
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY_NAME: mystartupregistry
+  RESOURCE_GROUP: mystartup-rg
+  CLUSTER_NAME: mystartup-aks
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      api-image: ${{ steps.meta-api.outputs.tags }}
+      worker-image: ${{ steps.meta-worker.outputs.tags }}
+      migration-image: ${{ steps.meta-migration.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: '**/test-results.trx'
+
+      - name: Set image tags
+        id: meta-api
+        run: |
+          REGISTRY_URL="${{ env.REGISTRY_NAME }}.azurecr.io"
+          IMAGE_TAG="${{ github.sha }}"
+          LATEST_TAG="latest"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            LATEST_TAG="stable"
+          fi
+          echo "tags=$REGISTRY_URL/api:$IMAGE_TAG,$REGISTRY_URL/api:$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Set worker image tags
+        id: meta-worker
+        run: |
+          REGISTRY_URL="${{ env.REGISTRY_NAME }}.azurecr.io"
+          IMAGE_TAG="${{ github.sha }}"
+          LATEST_TAG="latest"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            LATEST_TAG="stable"
+          fi
+          echo "tags=$REGISTRY_URL/worker:$IMAGE_TAG,$REGISTRY_URL/worker:$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Set migration image tags
+        id: meta-migration
+        run: |
+          REGISTRY_URL="${{ env.REGISTRY_NAME }}.azurecr.io"
+          IMAGE_TAG="${{ github.sha }}"
+          LATEST_TAG="latest"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            LATEST_TAG="stable"
+          fi
+          echo "tags=$REGISTRY_URL/migrations:$IMAGE_TAG,$REGISTRY_URL/migrations:$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to ACR
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ env.REGISTRY_NAME }}.azurecr.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/MyStartUpCompany.Api/Dockerfile
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          cache-from: type=registry,ref=${{ env.REGISTRY_NAME }}.azurecr.io/api:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY_NAME }}.azurecr.io/api:buildcache,mode=max
+
+      - name: Build and push Worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/MyStartUpCompany.Worker/Dockerfile
+          push: true
+          tags: ${{ steps.meta-worker.outputs.tags }}
+          cache-from: type=registry,ref=${{ env.REGISTRY_NAME }}.azurecr.io/worker:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY_NAME }}.azurecr.io/worker:buildcache,mode=max
+
+      - name: Build and push Migration image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/MigrationRunner/Dockerfile
+          push: true
+          tags: ${{ steps.meta-migration.outputs.tags }}
+          cache-from: type=registry,ref=${{ env.REGISTRY_NAME }}.azurecr.io/migrations:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY_NAME }}.azurecr.io/migrations:buildcache,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Verify cluster connectivity
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Update Kubernetes Manifests with Image Tags
+        run: |
+          # Replace image tags in manifests
+          IMAGE_TAG="${{ github.sha }}"
+
+          sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/04-api-deployment.yml
+          sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/05-worker-deployment.yml
+          sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/06-migration-job.yml
+
+      - name: Create Kubernetes Namespace
+        run: |
+          kubectl create namespace mystartup --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Verify Secrets Exist
+        run: |
+          if ! kubectl get secret app-secrets -n mystartup &> /dev/null; then
+            echo "ERROR: Secrets 'app-secrets' not found in namespace 'mystartup'"
+            echo "Please create the secrets before deploying"
+            exit 1
+          fi
+
+      - name: Apply Kubernetes Manifests
+        run: |
+          echo "Applying namespace and config..."
+          kubectl apply -f k8s/02-configmap.yml
+
+          echo "Running database migrations..."
+          kubectl apply -f k8s/06-migration-job.yml
+
+          # Wait for migration to complete
+          echo "Waiting for migrations to complete..."
+          kubectl wait --for=condition=complete job/migration-runner -n mystartup --timeout=600s || {
+            echo "WARNING: Migration job did not complete in time"
+            kubectl logs -n mystartup -l job-name=migration-runner --tail=50
+          }
+
+          echo "Deploying API..."
+          kubectl apply -f k8s/04-api-deployment.yml
+
+          echo "Deploying Worker..."
+          kubectl apply -f k8s/05-worker-deployment.yml
+
+          echo "Applying Pod Disruption Budgets..."
+          kubectl apply -f k8s/08-pod-disruption-budget.yml
+
+      - name: Wait for Deployments
+        run: |
+          echo "Waiting for API deployment..."
+          kubectl rollout status deployment/api -n mystartup --timeout=300s
+
+          echo "Waiting for Worker deployment..."
+          kubectl rollout status deployment/worker -n mystartup --timeout=300s
+
+      - name: Verify Deployments
+        run: |
+          echo "Pod Status:"
+          kubectl get pods -n mystartup -o wide
+
+          echo ""
+          echo "Service Status:"
+          kubectl get svc -n mystartup -o wide
+
+          echo ""
+          echo "Deployment Status:"
+          kubectl get deployments -n mystartup -o wide
+
+      - name: Get Service Endpoint
+        run: |
+          echo "Retrieving service endpoint..."
+
+          # Wait for LoadBalancer IP
+          EXTERNAL_IP=""
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl get svc api-service -n mystartup -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+            if [ -n "$EXTERNAL_IP" ]; then
+              break
+            fi
+            echo "Attempt $i/30: Waiting for LoadBalancer IP..."
+            sleep 10
+          done
+
+          if [ -n "$EXTERNAL_IP" ]; then
+            echo "API Service Endpoint: http://$EXTERNAL_IP"
+            echo "API_ENDPOINT=http://$EXTERNAL_IP" >> $GITHUB_ENV
+          else
+            echo "WARNING: Could not retrieve external IP. Service may still be initializing."
+          fi
+
+      - name: Run Smoke Tests
+        if: env.API_ENDPOINT != ''
+        run: |
+          echo "Running smoke tests against ${{ env.API_ENDPOINT }}"
+
+          # Test health endpoint
+          for i in {1..5}; do
+            echo "Health check attempt $i/5..."
+            if curl -f "${{ env.API_ENDPOINT }}/health/ready" ; then
+              echo "✓ API is healthy"
+              break
+            fi
+            sleep 30
+          done
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "=== Deployment Summary ==="
+          echo "Status: ${{ job.status }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          if [ -n "${{ env.API_ENDPOINT }}" ]; then
+            echo "API Endpoint: ${{ env.API_ENDPOINT }}"
+          fi
+
+  rollback:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Rollback Deployment
+        run: |
+          echo "Rolling back to previous deployment..."
+
+          kubectl rollout undo deployment/api -n mystartup
+          kubectl rollout undo deployment/worker -n mystartup
+
+          echo "Waiting for rollback..."
+          kubectl rollout status deployment/api -n mystartup --timeout=300s
+          kubectl rollout status deployment/worker -n mystartup --timeout=300s
+
+          echo "✓ Rollback completed"
+
+      - name: Notify Failure
+        run: |
+          echo "::error::Deployment failed and was rolled back. Check logs for details."

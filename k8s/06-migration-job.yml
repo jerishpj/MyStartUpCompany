@@ -1,0 +1,64 @@
+---
+# MigrationRunner Job
+# This job runs database migrations before services start
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migration-runner
+  namespace: mystartup
+  labels:
+    app: migration-runner
+    tier: infrastructure
+spec:
+  # Restart policy
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: migration-runner
+        tier: infrastructure
+    spec:
+      serviceAccountName: default
+      restartPolicy: Never
+
+      # Container
+      containers:
+      - name: migrations
+        image: mystartupregistry.azurecr.io/migrations:latest
+        imagePullPolicy: Always
+
+        # Environment variables
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: database-connection-string
+
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+
+        - name: Logging__LogLevel__Default
+          value: "Information"
+
+        # Resource limits for migration job
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+        # Security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL

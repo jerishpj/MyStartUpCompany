@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mystartup
+  labels:
+    name: mystartup
+    environment: production
+spec:
+  finalizers:
+  - kubernetes
