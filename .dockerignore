@@ -1,0 +1,55 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.vs
+.vscode
+*.swp
+*.swo
+*.user
+*.userprefs
+*.suo
+*.sln.iml
+.idea/
+
+# Build outputs
+bin/
+obj/
+dist/
+build/
+
+# Test files and coverage
+*.trx
+*.coverage
+TestResults/
+coverage/
+.nyc_output/
+
+# Node modules (if any frontend assets)
+node_modules/
+npm-debug.log
+
+# Package files
+*.nupkg
+*.snupkg
+
+# Documentation
+docs/
+*.md
+
+# Docker files (don't include other Dockerfiles in build context)
+.dockerignore
+Dockerfile.dev
+docker-compose.dev.yml
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Runtime folders that don't need to be copied
+Output/
+Temp/

@@ -1,0 +1,96 @@
+﻿version: '3.9'
+
+services:
+  # SQL Server Database (if not using Azure SQL in local development)
+  # Uncomment to use local SQL Server instead of Azure
+  # mssql:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: mystartupcompany-mssql
+  #   environment:
+  #     SA_PASSWORD: P@ssw0rd123!
+  #     ACCEPT_EULA: Y
+  #   ports:
+  #     - "1433:1433"
+  #   volumes:
+  #     - mssql-data:/var/opt/mssql
+  #   networks:
+  #     - mystartupcompany-network
+  #   healthcheck:
+  #     test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "P@ssw0rd123!" -Q "SELECT 1" -b || exit 1
+  #     interval: 15s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 40s
+
+  # MyStartUpCompany API Service
+  api:
+    build:
+      context: .
+      dockerfile: src/MyStartUpCompany.Api/Dockerfile
+    container_name: mystartupcompany-api
+    environment:
+      # Configuration for containerized environment
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${DB_CONNECTION_STRING:-Data Source=tcp:127.0.0.1,1433;Initial Catalog=MyStartUpCompanyDb;User ID=sa;Password=P@ssw0rd123!;Encrypt=false;TrustServerCertificate=true;}
+      Logging__LogLevel__Default: Information
+      Logging__LogLevel__Microsoft: Warning
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    networks:
+      - mystartupcompany-network
+    depends_on:
+      - eventbus
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/openapi/v1.json"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+  # Placeholder for Service Bus
+  eventbus:
+    image: busybox:latest
+    container_name: mystartupcompany-servicebus-placeholder
+    command: echo "Service Bus configuration will be injected via environment variables"
+    networks:
+      - mystartupcompany-network
+
+  # MyStartUpCompany Worker Service
+  worker:
+    build:
+      context: .
+      dockerfile: src/MyStartUpCompany.Worker/Dockerfile
+    container_name: mystartupcompany-worker
+    environment:
+      # Configuration for containerized environment
+      DOTNET_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${DB_CONNECTION_STRING:-Data Source=tcp:127.0.0.1,1433;Initial Catalog=MyStartUpCompanyDb;User ID=sa;Password=P@ssw0rd123!;Encrypt=false;TrustServerCertificate=true;}
+      AzureServiceBus__ConnectionString: ${SERVICE_BUS_CONNECTION_STRING:-}
+      AzureServiceBus__TopicName: ${SERVICE_BUS_TOPIC_NAME:-companies}
+      AzureServiceBus__SubscriptionName: ${SERVICE_BUS_SUBSCRIPTION_NAME:-worker-subscription}
+      Logging__LogLevel__Default: Information
+      Logging__LogLevel__Microsoft: Warning
+    networks:
+      - mystartupcompany-network
+    depends_on:
+      - api
+      - eventbus
+    restart: unless-stopped
+    volumes:
+      # Mount Input folder for file processing
+      - ./worker-input:/app/Input
+      - ./worker-processed:/app/Processed
+
+networks:
+  mystartupcompany-network:
+    driver: bridge
+
+volumes:
+  mssql-data:
+    driver: local
+  worker-input:
+    driver: local
+  worker-processed:
+    driver: local

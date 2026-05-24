@@ -1,0 +1,69 @@
+###############################################################################
+# Docker Compose configuration for running migrations in isolation
+#
+# This file defines a separate service for running database migrations.
+# It can be used standalone or in coordination with docker-compose.yml
+#
+# Usage:
+#   # Run migrations and then start API/Worker
+#   docker-compose -f docker-compose.yml -f docker-compose.migrations.yml up migrations
+#
+#   # Run migrations standalone
+#   docker-compose -f docker-compose.migrations.yml up --exit-code-from migrations
+#
+#   # Interactive debugging
+#   docker-compose -f docker-compose.migrations.yml run --rm migrations bash
+#
+# This approach ensures:
+# - Database schema is applied before services start
+# - Services never auto-migrate (safer in production)
+# - Migrations can be run on-demand or as a separate deployment step
+###############################################################################
+
+version: '3.8'
+
+services:
+  # SQL Server database service (shared with API/Worker)
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mystartupcompany-db
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: YourStrong@Password123
+      MSSQL_PID: Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - mystartupcompany-network
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong@Password123" -Q "SELECT 1" -b || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Migration runner service
+  migrations:
+    build:
+      context: .
+      dockerfile: src/MigrationRunner/Dockerfile
+    container_name: mystartupcompany-migrations
+    depends_on:
+      mssql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=mssql;Database=MyStartUpCompanyDb;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=true"
+    networks:
+      - mystartupcompany-network
+    # Exit after migrations complete
+    restart: no
+
+networks:
+  mystartupcompany-network:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
+    driver: local
