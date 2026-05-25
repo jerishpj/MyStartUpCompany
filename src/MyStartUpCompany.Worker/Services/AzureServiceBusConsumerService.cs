@@ -1,6 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using MyStartUpCompany.Worker.Configuration;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
+using MyStartUpCompany.Worker.Mappers;
 using System.Text.Json;
 
 namespace MyStartUpCompany.Worker.Services
@@ -82,6 +83,7 @@ namespace MyStartUpCompany.Worker.Services
 
         /// <summary>
         /// Handles incoming messages from the Service Bus Topic.
+        /// Extracts the source identifier from message properties and passes it to the processor.
         /// </summary>
         private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
         {
@@ -94,8 +96,15 @@ namespace MyStartUpCompany.Worker.Services
                     "Received message from Service Bus. MessageId: {MessageId}, Size: {Size} bytes",
                     messageId, args.Message.Body.Length);
 
-                // Deserialize the message content to CompanyInputDto
-                var companyDto = DeserializeMessage(messageBody, messageId);
+                // Extract source identifier from message properties or headers
+                var source = ExtractMessageSource(args.Message);
+
+                _logger.LogInformation(
+                    "Message {MessageId} identified as from source: {Source}",
+                    messageId, source);
+
+                // Deserialize and map the message based on source
+                var companyDto = DeserializeAndMapMessage(messageBody, source, messageId);
 
                 if (companyDto == null)
                 {
@@ -149,8 +158,140 @@ namespace MyStartUpCompany.Worker.Services
         }
 
         /// <summary>
-        /// Deserializes a message body to CompanyInputDto.
+        /// Extracts the source identifier from the Service Bus message.
+        /// Checks for source in multiple places: custom property, user property, or defaults to "Direct".
         /// </summary>
+        /// <remarks>
+        /// Source resolution order:
+        /// 1. Custom property "Source" on the message
+        /// 2. User property "Source" in the message properties
+        /// 3. Subject line if it contains source identifier
+        /// 4. Defaults to "Direct" if not found
+        /// </remarks>
+        private string ExtractMessageSource(ServiceBusReceivedMessage message)
+        {
+            try
+            {
+                // Check for custom property "Source"
+                if (message.ApplicationProperties.TryGetValue("Source", out var sourceObj))
+                {
+                    var sourceValue = sourceObj?.ToString();
+                    if (!string.IsNullOrWhiteSpace(sourceValue))
+                    {
+                        _logger.LogDebug("Message source found in ApplicationProperties: {Source}", sourceValue);
+                        return sourceValue;
+                    }
+                }
+
+                // Check for source in subject
+                if (!string.IsNullOrWhiteSpace(message.Subject))
+                {
+                    _logger.LogDebug("Message source found in Subject: {Subject}", message.Subject);
+                    return message.Subject;
+                }
+
+                // Default to "Direct" if no source is found
+                _logger.LogDebug("No source identifier found in message properties, defaulting to: Direct");
+                return MessageSources.Direct;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error extracting message source, defaulting to: Direct");
+                return MessageSources.Direct;
+            }
+        }
+
+        /// <summary>
+        /// Deserializes a message body and applies source-specific mapping.
+        /// </summary>
+        /// <remarks>
+        /// For "Direct" source, deserializes directly to CompanyInputDto.
+        /// For other sources, deserializes to object and applies mapper factory transformation.
+        /// </remarks>
+        private CompanyInputDto? DeserializeAndMapMessage(string messageBody, string source, string messageId)
+        {
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                // For Direct source, deserialize directly to CompanyInputDto
+                if (source.Equals(MessageSources.Direct, StringComparison.OrdinalIgnoreCase))
+                {
+                    var companyDto = JsonSerializer.Deserialize<CompanyInputDto>(messageBody, options);
+
+                    if (companyDto == null)
+                    {
+                        _logger.LogWarning(
+                            "Failed to deserialize Direct message {MessageId}: deserialization returned null",
+                            messageId);
+                        return null;
+                    }
+
+                    _logger.LogDebug("Successfully deserialized Direct message {MessageId}", messageId);
+                    return companyDto;
+                }
+
+                // For other sources, deserialize to object and use mapper factory
+                using var scope = _serviceScopeFactory.CreateScope();
+                var mapperFactory = scope.ServiceProvider.GetRequiredService<IMapperFactory>();
+
+                // Deserialize to dynamic object for mapper inspection
+                var rawMessage = JsonSerializer.Deserialize<object>(messageBody, options);
+
+                if (rawMessage == null)
+                {
+                    _logger.LogWarning(
+                        "Failed to deserialize message {MessageId} from source {Source}: deserialization returned null",
+                        messageId, source);
+                    return null;
+                }
+
+                _logger.LogDebug(
+                    "Attempting to map message {MessageId} from source {Source}",
+                    messageId, source);
+
+                var mappedDto = mapperFactory.MapMessage(source, rawMessage);
+
+                if (mappedDto == null)
+                {
+                    _logger.LogWarning(
+                        "Mapper returned null for message {MessageId} from source {Source}",
+                        messageId, source);
+                    return null;
+                }
+
+                _logger.LogDebug(
+                    "Successfully mapped message {MessageId} from source {Source} to CompanyInputDto",
+                    messageId, source);
+
+                return mappedDto;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "JSON deserialization failed for message {MessageId} from source {Source}. Body: {MessageBody}",
+                    messageId, source, messageBody);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Unexpected error deserializing/mapping message {MessageId} from source {Source}",
+                    messageId, source);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Deserializes a message body to CompanyInputDto.
+        /// DEPRECATED: Use DeserializeAndMapMessage instead. Kept for backward compatibility.
+        /// </summary>
+        [Obsolete("Use DeserializeAndMapMessage instead")]
         private CompanyInputDto? DeserializeMessage(string messageBody, string messageId)
         {
             try

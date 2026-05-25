@@ -1,4 +1,5 @@
 using MyStartUpCompany.Worker.Handlers.AddCompany;
+using MyStartUpCompany.Worker.Mappers;
 
 namespace MyStartUpCompany.Worker.Services
 {
@@ -11,13 +12,71 @@ namespace MyStartUpCompany.Worker.Services
     {
         private readonly AddCompanyEventHandler _handler;
         private readonly ILogger<CompanyMessageProcessor> _logger;
+        private readonly IMapperFactory? _mapperFactory;
 
+        /// <summary>
+        /// Initializes the processor with required dependencies.
+        /// The mapper factory is optional for backward compatibility.
+        /// </summary>
         public CompanyMessageProcessor(
             AddCompanyEventHandler handler,
-            ILogger<CompanyMessageProcessor> logger)
+            ILogger<CompanyMessageProcessor> logger,
+            IMapperFactory? mapperFactory = null)
         {
             _handler = handler;
             _logger = logger;
+            _mapperFactory = mapperFactory;
+        }
+
+        /// <summary>
+        /// Processes a raw source message by mapping it to CompanyInputDto and then processing.
+        /// This method handles both deserialization and mapping based on source.
+        /// </summary>
+        /// <param name="sourceMessage">Raw message object from the source system</param>
+        /// <param name="source">Identifier of the message source</param>
+        /// <param name="sourceIdentifier">Human-readable identifier for logging</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Processing result after mapping and validation</returns>
+        public async Task<CompanyProcessingResult> ProcessSourceMessageAsync(
+            object sourceMessage,
+            string source,
+            string sourceIdentifier,
+            CancellationToken cancellationToken = default)
+        {
+            if (_mapperFactory == null)
+            {
+                _logger.LogError(
+                    "Mapper factory not configured. Cannot process source message from '{Source}'",
+                    source);
+                return CompanyProcessingResult.Error(
+                    "Message mapping not available - mapper factory not registered");
+            }
+
+            try
+            {
+                // Map the source message to CompanyInputDto
+                var companyDto = _mapperFactory.MapMessage(source, sourceMessage);
+
+                if (companyDto == null)
+                {
+                    _logger.LogWarning(
+                        "Mapping failed for message from source '{Source}' ({SourceIdentifier})",
+                        source, sourceIdentifier);
+                    return CompanyProcessingResult.Invalid(
+                        $"Failed to map message from source '{source}'");
+                }
+
+                // Process the mapped company data
+                return await ProcessCompanyAsync(companyDto, sourceIdentifier, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error processing source message from '{Source}' ({SourceIdentifier})",
+                    source, sourceIdentifier);
+                return CompanyProcessingResult.Error(ex.Message);
+            }
         }
 
         /// <summary>

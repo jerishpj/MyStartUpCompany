@@ -1,6 +1,7 @@
 using MyStartUpCompany.Persistence.Extensions;
 using MyStartUpCompany.Worker;
 using MyStartUpCompany.Worker.Configuration;
+using MyStartUpCompany.Worker.Extensions;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Services;
 
@@ -69,6 +70,9 @@ builder.Services.AddHostedService<Worker>();
 builder.Services.AddScoped<AddCompanyEventHandler>();
 builder.Services.AddScoped<CompanyFileProcessorService>();
 builder.Services.AddScoped<CompanyMessageProcessor>();
+
+// Register message mapping services (Strategy + Factory patterns for source-based mapping)
+builder.Services.AddMessageMappers();
 
 // Configure Entity Framework Core with environment-based database selection
 builder.Services.AddAppDatabase(builder.Configuration, builder.Environment);
