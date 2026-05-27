@@ -1,6 +1,11 @@
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
+using MyStartUpCompany.Api.Features.CompanyDetails.Validators;      
 using MyStartUpCompany.Api.Shared.Exceptions;
+using MyStartUpCompany.Api.Shared.Filters;
 using MyStartUpCompany.Persistence;
 using MyStartUpCompany.Persistence.Extensions;
 using Scalar.AspNetCore;
@@ -12,7 +17,14 @@ public partial class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(options =>
+        {
+            options.Filters.Add<FluentValidationFilter>();
+        });
+
+        // Register FluentValidation validators
+        builder.Services.AddValidatorsFromAssemblyContaining<CompanyRequestValidator>();
+        builder.Services.AddScoped<FluentValidationFilter>();
 
         // Configure ProblemDetails with custom factory
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
