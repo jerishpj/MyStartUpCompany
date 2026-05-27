@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
-using MyStartUpCompany.Api.Features.CompanyDetails.Validators;      
+using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
+using MyStartUpCompany.Api.Features.Projects.Queries;
 using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Api.Shared.Filters;
 using MyStartUpCompany.Persistence;
@@ -41,6 +42,11 @@ public partial class Program
         builder.Services.AddScoped<IGetCompanyQueryHandler, GetCompanyQueryHandler>();
         builder.Services.AddScoped<IGetAllCompaniesQueryHandler, GetAllCompaniesQueryHandler>();
         builder.Services.AddScoped<IGetFilteredCompaniesQueryHandler, GetFilteredCompaniesQueryHandler>();
+
+        // Register project query handlers
+        builder.Services.AddScoped<IGetProjectQueryHandler, GetProjectQueryHandler>();
+        builder.Services.AddScoped<IGetAllProjectsQueryHandler, GetAllProjectsQueryHandler>();
+        builder.Services.AddScoped<IGetFilteredProjectsQueryHandler, GetFilteredProjectsQueryHandler>();
 
         // Configure OpenAPI
         builder.Services.AddOpenApi();
