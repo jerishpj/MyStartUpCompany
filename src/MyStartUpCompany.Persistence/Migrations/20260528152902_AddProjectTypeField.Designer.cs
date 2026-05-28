@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyStartUpCompany.Persistence;
 
@@ -11,9 +12,11 @@ using MyStartUpCompany.Persistence;
 namespace MyStartUpCompany.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528152902_AddProjectTypeField")]
+    partial class AddProjectTypeField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1717,229 +1720,6 @@ namespace MyStartUpCompany.Persistence.Migrations
                             Name = "Solar Farm Monitoring Platform",
                             ProjectIdentifier = "PROJ-2024-023",
                             Type = 1
-                        });
-                });
-
-            modelBuilder.Entity("MyStartUpCompany.Persistence.Entities.ProjectTypeReference", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ColorCode")
-                        .HasMaxLength(7)
-                        .HasColumnType("nvarchar(7)")
-                        .HasComment("Hex color code for UI categorization (e.g., '#FF5733')");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()")
-                        .HasComment("When this reference was created");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasComment("Detailed description of the project type");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("User-friendly display name for UI/reports");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int")
-                        .HasComment("Sort order for UI dropdowns");
-
-                    b.Property<string>("EnumName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasComment("Enum member name matching ProjectType enum");
-
-                    b.Property<string>("IconIdentifier")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
-                        .HasComment("Icon or emoji identifier for UI (e.g., '🎮', '☁️')");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasComment("Is this project type currently active/usable");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasComment("When this reference was last updated");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EnumName")
-                        .IsUnique();
-
-                    b.ToTable("ProjectTypeReferences", null, t =>
-                        {
-                            t.HasComment("Reference data for all valid ProjectType enum values");
-                        });
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ColorCode = "#FF6B6B",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Game design, engine development, art, audio, and game programming projects",
-                            DisplayName = "Game Development",
-                            DisplayOrder = 1,
-                            EnumName = "GameDevelopment",
-                            IconIdentifier = "🎮",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ColorCode = "#4ECDC4",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Cloud infrastructure, migration, deployment, and cloud-native application projects",
-                            DisplayName = "Cloud Service",
-                            DisplayOrder = 2,
-                            EnumName = "CloudService",
-                            IconIdentifier = "☁️",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ColorCode = "#95E1D3",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Customer support platforms, ticketing systems, and customer engagement tools",
-                            DisplayName = "Customer Support",
-                            DisplayOrder = 3,
-                            EnumName = "CustomerSupport",
-                            IconIdentifier = "🎧",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ColorCode = "#F38181",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Data pipelines, analytics engines, reporting, BI tools, and data warehouse projects",
-                            DisplayName = "Data Analytics",
-                            DisplayOrder = 4,
-                            EnumName = "DataAnalytics",
-                            IconIdentifier = "📊",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 5,
-                            ColorCode = "#AA96DA",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "CI/CD pipelines, monitoring systems, DevOps, container orchestration, and infrastructure management",
-                            DisplayName = "Infrastructure",
-                            DisplayOrder = 5,
-                            EnumName = "Infrastructure",
-                            IconIdentifier = "⚙️",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 6,
-                            ColorCode = "#FCBAD3",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Security implementation, compliance, auditing, penetration testing, and security infrastructure",
-                            DisplayName = "Security",
-                            DisplayOrder = 6,
-                            EnumName = "Security",
-                            IconIdentifier = "🔒",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 7,
-                            ColorCode = "#FFFFD2",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "iOS, Android, and cross-platform mobile application development projects",
-                            DisplayName = "Mobile App",
-                            DisplayOrder = 7,
-                            EnumName = "MobileApp",
-                            IconIdentifier = "📱",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 8,
-                            ColorCode = "#80D8FF",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Frontend and backend web application development, SPA projects, and web services",
-                            DisplayName = "Web Application",
-                            DisplayOrder = 8,
-                            EnumName = "WebApplication",
-                            IconIdentifier = "🌐",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 9,
-                            ColorCode = "#B2DFDB",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "REST APIs, GraphQL, gRPC, and other API interface development and integration projects",
-                            DisplayName = "API Development",
-                            DisplayOrder = 9,
-                            EnumName = "ApiDevelopment",
-                            IconIdentifier = "🔗",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 10,
-                            ColorCode = "#FFB74D",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "ML model development, AI implementations, training pipelines, and predictive analytics",
-                            DisplayName = "Machine Learning",
-                            DisplayOrder = 10,
-                            EnumName = "MachineLearning",
-                            IconIdentifier = "🤖",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 11,
-                            ColorCode = "#CE93D8",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "System integration, middleware development, data interchange, and enterprise integration projects",
-                            DisplayName = "Integration",
-                            DisplayOrder = 11,
-                            EnumName = "Integration",
-                            IconIdentifier = "🔀",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 12,
-                            ColorCode = "#64B5F6",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Research and POC (Proof of Concept) projects, experimentation, and prototyping",
-                            DisplayName = "Research",
-                            DisplayOrder = 12,
-                            EnumName = "Research",
-                            IconIdentifier = "🔬",
-                            IsActive = true
-                        },
-                        new
-                        {
-                            Id = 13,
-                            ColorCode = "#B0BEC5",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Miscellaneous projects that don't fit into standard categories",
-                            DisplayName = "Other",
-                            DisplayOrder = 13,
-                            EnumName = "Other",
-                            IconIdentifier = "📦",
-                            IsActive = true
                         });
                 });
 

@@ -32,6 +32,12 @@ public class CreateProjectRequest
     public int CompanyId { get; set; }
 
     /// <summary>
+    /// Type/category of the project (e.g., "GameDevelopment", "CloudService", "CustomerSupport")
+    /// Defines the broad classification of work being performed
+    /// </summary>
+    public required string Type { get; set; }
+
+    /// <summary>
     /// Project details (non-searchable, stored as JSON internally)
     /// </summary>
     public ProjectDetailsDto Details { get; set; } = new();

@@ -41,6 +41,7 @@ public class GetAllProjectsQueryHandler : IGetAllProjectsQueryHandler
             Code = p.Code,
             Location = p.Location,
             CompanyId = p.CompanyId,
+            Type = p.Type.ToString(),
             Details = MapProjectDetails(p.Details),
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt

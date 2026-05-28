@@ -1,3 +1,4 @@
+using MyStartUpCompany.Persistence.Entities.Enums;
 using MyStartUpCompany.Persistence.Entities.ValueObjects;
 
 namespace MyStartUpCompany.Persistence.Entities;
@@ -43,6 +44,12 @@ public class Project
     /// Foreign key to Company - each project belongs to a company
     /// </summary>
     public int CompanyId { get; set; }
+
+    /// <summary>
+    /// Type/category of the project (e.g., GameDevelopment, CloudService, CustomerSupport)
+    /// Defines the broad classification of work being performed
+    /// </summary>
+    public required ProjectType Type { get; set; }
 
     /// <summary>
     /// Navigation property to Company

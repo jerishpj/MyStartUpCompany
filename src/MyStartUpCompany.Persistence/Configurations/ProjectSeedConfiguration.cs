@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyStartUpCompany.Persistence.Entities;
+using MyStartUpCompany.Persistence.Entities.Enums;
 using MyStartUpCompany.Persistence.Entities.ValueObjects;
 
 namespace MyStartUpCompany.Persistence.Configurations;
@@ -33,6 +34,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "AIPL",
                 Location = "San Francisco",
                 CompanyId = 1,
+                Type = ProjectType.DataAnalytics,
                 Details = new ProjectDetails
                 {
                     Budget = 250000,
@@ -61,6 +63,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "CLDM",
                 Location = "San Francisco",
                 CompanyId = 1,
+                Type = ProjectType.CloudService,
                 Details = new ProjectDetails
                 {
                     Budget = 180000,
@@ -87,6 +90,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "APISEC",
                 Location = "Palo Alto",
                 CompanyId = 1,
+                Type = ProjectType.Security,
                 Details = new ProjectDetails
                 {
                     Budget = 95000,
@@ -119,6 +123,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "CONT",
                 Location = "San Jose",
                 CompanyId = 2,
+                Type = ProjectType.Infrastructure,
                 Details = new ProjectDetails
                 {
                     Budget = 320000,
@@ -146,6 +151,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "MCMON",
                 Location = "San Jose",
                 CompanyId = 2,
+                Type = ProjectType.Infrastructure,
                 Details = new ProjectDetails
                 {
                     Budget = 155000,
@@ -172,6 +178,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "DREC",
                 Location = "Remote",
                 CompanyId = 2,
+                Type = ProjectType.Infrastructure,
                 Details = new ProjectDetails
                 {
                     Budget = 210000,
@@ -202,6 +209,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "RTDP",
                 Location = "Palo Alto",
                 CompanyId = 3,
+                Type = ProjectType.DataAnalytics,
                 Details = new ProjectDetails
                 {
                     Budget = 280000,
@@ -229,6 +237,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "AAD",
                 Location = "Palo Alto",
                 CompanyId = 3,
+                Type = ProjectType.DataAnalytics,
                 Details = new ProjectDetails
                 {
                     Budget = 120000,
@@ -255,6 +264,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "DQF",
                 Location = "Remote",
                 CompanyId = 3,
+                Type = ProjectType.DataAnalytics,
                 Details = new ProjectDetails
                 {
                     Budget = 95000,
@@ -287,6 +297,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "ZTRST",
                 Location = "San Diego",
                 CompanyId = 4,
+                Type = ProjectType.Security,
                 Details = new ProjectDetails
                 {
                     Budget = 420000,
@@ -314,6 +325,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "EKMS",
                 Location = "San Diego",
                 CompanyId = 4,
+                Type = ProjectType.Security,
                 Details = new ProjectDetails
                 {
                     Budget = 175000,
@@ -345,6 +357,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "GITOPS",
                 Location = "Los Angeles",
                 CompanyId = 5,
+                Type = ProjectType.Infrastructure,
                 Details = new ProjectDetails
                 {
                     Budget = 140000,
@@ -371,6 +384,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "IACF",
                 Location = "Los Angeles",
                 CompanyId = 5,
+                Type = ProjectType.Infrastructure,
                 Details = new ProjectDetails
                 {
                     Budget = 165000,
@@ -402,6 +416,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "QAD",
                 Location = "Mountain View",
                 CompanyId = 6,
+                Type = ProjectType.Research,
                 Details = new ProjectDetails
                 {
                     Budget = 550000,
@@ -429,6 +444,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "QSP",
                 Location = "Mountain View",
                 CompanyId = 6,
+                Type = ProjectType.Research,
                 Details = new ProjectDetails
                 {
                     Budget = 320000,
@@ -459,6 +475,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "CPFX",
                 Location = "San Francisco",
                 CompanyId = 7,
+                Type = ProjectType.MobileApp,
                 Details = new ProjectDetails
                 {
                     Budget = 280000,
@@ -486,6 +503,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "ARVR",
                 Location = "San Francisco",
                 CompanyId = 7,
+                Type = ProjectType.MobileApp,
                 Details = new ProjectDetails
                 {
                     Budget = 195000,
@@ -517,6 +535,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "ERPU",
                 Location = "New York",
                 CompanyId = 8,
+                Type = ProjectType.Integration,
                 Details = new ProjectDetails
                 {
                     Budget = 500000,
@@ -544,6 +563,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "BIP",
                 Location = "New York",
                 CompanyId = 8,
+                Type = ProjectType.DataAnalytics,
                 Details = new ProjectDetails
                 {
                     Budget = 220000,
@@ -575,6 +595,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "BCPAY",
                 Location = "San Francisco",
                 CompanyId = 9,
+                Type = ProjectType.MachineLearning,
                 Details = new ProjectDetails
                 {
                     Budget = 600000,
@@ -602,6 +623,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "FDAI",
                 Location = "San Francisco",
                 CompanyId = 9,
+                Type = ProjectType.MachineLearning,
                 Details = new ProjectDetails
                 {
                     Budget = 320000,
@@ -634,6 +656,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "SGMS",
                 Location = "Austin",
                 CompanyId = 10,
+                Type = ProjectType.CloudService,
                 Details = new ProjectDetails
                 {
                     Budget = 480000,
@@ -661,6 +684,7 @@ public class ProjectSeedConfiguration : IEntityTypeConfiguration<Project>
                 Code = "SFMP",
                 Location = "Austin",
                 CompanyId = 10,
+                Type = ProjectType.CloudService,
                 Details = new ProjectDetails
                 {
                     Budget = 185000,

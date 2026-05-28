@@ -37,6 +37,11 @@ public class ProjectResponse
     public int CompanyId { get; set; }
 
     /// <summary>
+    /// Type/category of the project (e.g., "GameDevelopment", "CloudService", "DataAnalytics")
+    /// </summary>
+    public required string Type { get; set; }
+
+    /// <summary>
     /// Project details (deserialized from JSON)
     /// </summary>
     public ProjectDetailsDto Details { get; set; } = new();

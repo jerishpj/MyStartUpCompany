@@ -2,7 +2,7 @@ namespace MyStartUpCompany.Api.Features.Projects.Models;
 
 /// <summary>
 /// Query/filter parameters for project list endpoints
-/// Maps to searchable columns: ProjectIdentifier, Code, Location, CompanyId
+/// Maps to searchable columns: ProjectIdentifier, Code, Location, CompanyId, Type
 /// </summary>
 public class ProjectFilterRequest
 {
@@ -30,6 +30,12 @@ public class ProjectFilterRequest
     /// Filter by company ID
     /// </summary>
     public int? CompanyId { get; set; }
+
+    /// <summary>
+    /// Filter by project type (exact match)
+    /// If not specified, all project types are included
+    /// </summary>
+    public string? Type { get; set; }
 
     /// <summary>
     /// Sort order: "asc" or "desc" (default: "asc")

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.Projects.Models;
 using MyStartUpCompany.Api.Shared.Models;
 using MyStartUpCompany.Persistence;
+using MyStartUpCompany.Persistence.Entities.Enums;
 
 namespace MyStartUpCompany.Api.Features.Projects.Queries;
 
@@ -30,9 +31,9 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
     {
         _logger.LogInformation(
             "Retrieving filtered projects - ProjectIdentifier: {ProjectIdentifier}, Name: {Name}, " +
-            "Code: {Code}, Location: {Location}, CompanyId: {CompanyId}, " +
+            "Code: {Code}, Location: {Location}, CompanyId: {CompanyId}, Type: {Type}, " +
             "SortBy: {SortBy}, SortOrder: {SortOrder}, PageNumber: {PageNumber}, PageSize: {PageSize}",
-            request.ProjectIdentifier, request.Name, request.Code, request.Location, request.CompanyId,
+            request.ProjectIdentifier, request.Name, request.Code, request.Location, request.CompanyId, request.Type,
             request.SortBy, request.SortOrder, request.PageNumber, request.PageSize);
 
         // Build optimized query with database-level filters (searchable columns)
@@ -76,7 +77,7 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
         var query = _dbContext.Projects.AsNoTracking();
 
         // PERFORMANCE TIP: Apply most selective filters first
-        // Order: CompanyId (foreign key) > ProjectIdentifier > Code > Location > Name (substring search)
+        // Order: CompanyId (foreign key) > ProjectIdentifier > Type > Code > Location > Name (substring search)
 
         // Filter by company ID (indexed)
         if (request.CompanyId.HasValue && request.CompanyId > 0)
@@ -88,6 +89,16 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
         if (!string.IsNullOrWhiteSpace(request.ProjectIdentifier))
         {
             query = query.Where(p => p.ProjectIdentifier.Contains(request.ProjectIdentifier));
+        }
+
+        // Filter by project type (indexed enum)
+        if (!string.IsNullOrWhiteSpace(request.Type))
+        {
+            if (Enum.TryParse<ProjectType>(request.Type, ignoreCase: true, out var projectType))
+            {
+                query = query.Where(p => p.Type == projectType);
+            }
+            // If parsing fails, silently skip this filter to prevent errors
         }
 
         // Filter by code (indexed)
@@ -160,6 +171,7 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
             Code = project.Code,
             Location = project.Location,
             CompanyId = project.CompanyId,
+            Type = project.Type.ToString(),
             Details = MapProjectDetails(project.Details),
             CreatedAt = project.CreatedAt,
             UpdatedAt = project.UpdatedAt

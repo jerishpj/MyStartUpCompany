@@ -1,5 +1,6 @@
 using FluentValidation;
 using MyStartUpCompany.Api.Features.Projects.Models;
+using MyStartUpCompany.Persistence.Entities.Enums;
 
 namespace MyStartUpCompany.Api.Features.Projects.Validators;
 
@@ -87,6 +88,11 @@ public class CreateProjectRequestValidator : AbstractValidator<CreateProjectRequ
         RuleFor(x => x.CompanyId)
             .GreaterThan(0).WithMessage("Company ID must be a positive number");
 
+        RuleFor(x => x.Type)
+            .NotEmpty().WithMessage("Project type is required")
+            .Must(t => Enum.GetNames(typeof(ProjectType)).Contains(t, StringComparer.OrdinalIgnoreCase))
+            .WithMessage($"Project type must be one of: {string.Join(", ", Enum.GetNames(typeof(ProjectType)))}");
+
         // Details validation
         RuleFor(x => x.Details)
             .NotNull().WithMessage("Project details are required")
@@ -121,6 +127,11 @@ public class ProjectFilterRequestValidator : AbstractValidator<ProjectFilterRequ
         RuleFor(x => x.CompanyId)
             .GreaterThan(0).WithMessage("Company ID filter must be a positive number")
             .When(x => x.CompanyId.HasValue);
+
+        RuleFor(x => x.Type)
+            .Must(t => Enum.GetNames(typeof(ProjectType)).Contains(t, StringComparer.OrdinalIgnoreCase))
+            .WithMessage($"Project type filter must be one of: {string.Join(", ", Enum.GetNames(typeof(ProjectType)))}")
+            .When(x => !string.IsNullOrWhiteSpace(x.Type));
 
         RuleFor(x => x.SortOrder)
             .Must(s => new[] { "asc", "desc" }.Contains(s.ToLower()))
