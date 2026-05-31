@@ -28,4 +28,8 @@
     <Using Include="FluentAssertions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Handlers\AddCompany\Validators\" />
+  </ItemGroup>
+
 </Project>

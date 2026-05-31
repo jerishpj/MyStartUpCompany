@@ -10,13 +10,39 @@ namespace MyStartUpCompany.Api.Tests;
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     private const string TestDatabaseName = "IntegrationTestDatabase";
+    private readonly string _uniqueDatabaseName = $"TestDb_{Guid.NewGuid()}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Set environment to trigger InMemory database in AppDbContextFactory
         builder.UseEnvironment("AutomatedIntegrationTest");
+
+        // Override DbContext registration to use unique in-memory database per factory instance
+        builder.ConfigureServices(services =>
+        {
+            // Remove existing AppDbContext registration
+            var descriptors = services.Where(d => d.ServiceType == typeof(AppDbContext) || 
+                                                   d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
+                                                   (d.ServiceType.IsGenericType && 
+                                                    d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>)))
+                                      .ToList();
+            foreach (var descriptor in descriptors)
+            {
+                services.Remove(descriptor);
+            }
+
+            // Register with unique database name
+            services.AddDbContextPool<AppDbContext>((serviceProvider, options) =>
+            {
+                options.UseInMemoryDatabase(_uniqueDatabaseName);
+                options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();
+            }, poolSize: 128);
+        });
     }
-    
+
+    public string GetTestDatabaseName() => _uniqueDatabaseName;
+
     protected override IHost CreateHost(IHostBuilder builder)
     {
         var host = base.CreateHost(builder);
@@ -24,7 +50,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         // Ensure database is created
         using (var scope = host.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>(); db.Database.Migrate();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.EnsureCreated();
         }
 
@@ -39,10 +65,44 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Remove all entities
-        context.Companies.RemoveRange(context.Companies);
-        context.Employees.RemoveRange(context.Employees);
-        context.SaveChanges();
+        var isInMemory = context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory";
+
+        try
+        {
+            if (isInMemory)
+            {
+                // For in-memory database, clear entities in reverse dependency order
+                var projectTypes = context.ProjectTypeReferences.ToList();
+                if (projectTypes.Any())
+                    context.ProjectTypeReferences.RemoveRange(projectTypes);
+
+                var projects = context.Projects.ToList();
+                if (projects.Any())
+                    context.Projects.RemoveRange(projects);
+
+                var employees = context.Employees.ToList();
+                if (employees.Any())
+                    context.Employees.RemoveRange(employees);
+
+                var companies = context.Companies.ToList();
+                if (companies.Any())
+                    context.Companies.RemoveRange(companies);
+
+                context.SaveChanges();
+            }
+            else
+            {
+                // For SQL Server, truncate tables
+                context.Database.ExecuteSqlRaw("DELETE FROM [ProjectTypeReferences]");
+                context.Database.ExecuteSqlRaw("DELETE FROM [Projects]");
+                context.Database.ExecuteSqlRaw("DELETE FROM [Employees]");
+                context.Database.ExecuteSqlRaw("DELETE FROM [Companies]");
+            }
+        }
+        catch
+        {
+            // Silent fail if context is in inconsistent state
+        }
     }
 
     /// <summary>

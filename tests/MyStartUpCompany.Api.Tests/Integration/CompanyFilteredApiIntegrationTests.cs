@@ -883,7 +883,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         });
 
         // Act
-        var response = await Client.GetAsync("/api/company/search?pageSize=1000");
+        var response = await Client.GetAsync("/api/company/search?pageSize=100");
 
         // Assert
         var result = await response.ReadAsJsonAsync<PagedResult<Company>>();

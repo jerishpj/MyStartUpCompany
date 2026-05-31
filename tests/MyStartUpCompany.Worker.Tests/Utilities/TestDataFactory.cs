@@ -1,6 +1,7 @@
 using MyStartUpCompany.Persistence;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MyStartUpCompany.Worker.Tests.Utilities
 {
@@ -13,12 +14,44 @@ namespace MyStartUpCompany.Worker.Tests.Utilities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Apply only entity configurations, not seed data
-            // Apply Company configuration without seed data
-            var companyBuilder = modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Company>();
+            // Only call DbContext's base implementation, NOT AppDbContext's which applies seed data
+            base.OnModelCreating(modelBuilder);
 
-            // Apply Employee configuration without seed data
-            var employeeBuilder = modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Employee>();
+            // Manually configure entities without seed data
+            ConfigureEntitiesForTesting(modelBuilder);
+        }
+
+        private static void ConfigureEntitiesForTesting(ModelBuilder modelBuilder)
+        {
+            // Configure Company entity without seed data
+            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Company>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired();
+                entity.Property(e => e.Address).IsRequired();
+                entity.Property(e => e.City).IsRequired();
+                entity.Property(e => e.PostalCode).IsRequired();
+                entity.Property(e => e.Country).IsRequired();
+                entity.Property(e => e.Phone).IsRequired();
+            });
+
+            // Configure Employee entity without seed data
+            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Employee>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+
+            // Configure Project entity without seed data
+            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Project>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+
+            // Configure ProjectTypeReference entity without seed data
+            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.ProjectTypeReference>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
         }
     }
 
@@ -73,6 +106,33 @@ namespace MyStartUpCompany.Worker.Tests.Utilities
                 .Options;
             var context = new TestAppDbContext(options);
             context.Database.EnsureCreated();
+
+            // Clear any seeded data that might have been added by OnModelCreating
+            var companies = context.Companies.ToList();
+            if (companies.Any())
+            {
+                context.Companies.RemoveRange(companies);
+            }
+
+            var employees = context.Employees.ToList();
+            if (employees.Any())
+            {
+                context.Employees.RemoveRange(employees);
+            }
+
+            var projects = context.Projects.ToList();
+            if (projects.Any())
+            {
+                context.Projects.RemoveRange(projects);
+            }
+
+            var projectTypes = context.ProjectTypeReferences.ToList();
+            if (projectTypes.Any())
+            {
+                context.ProjectTypeReferences.RemoveRange(projectTypes);
+            }
+
+            context.SaveChanges();
             return context;
         }
 

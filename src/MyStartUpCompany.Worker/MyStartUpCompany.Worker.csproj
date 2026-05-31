@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Handlers\AddCompany\Validators\" />
     <Folder Include="Processed\" />
   </ItemGroup>
 </Project>

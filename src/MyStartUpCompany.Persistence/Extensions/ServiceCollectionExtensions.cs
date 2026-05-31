@@ -38,29 +38,39 @@ public static class ServiceCollectionExtensions
         string connectionString,
         IHostEnvironment environment)
     {
-        options.UseSqlServer(connectionString, sqlOptions =>
+        // Use InMemory database for automated integration tests
+        if (environment.EnvironmentName == "AutomatedIntegrationTest")
         {
-            // Performance optimizations
-            sqlOptions.CommandTimeout(30);
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorNumbersToAdd: null);
-
-            // Use query splitting for better performance with complex queries
-            sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-        });
-
-        // Enable sensitive data logging only in development
-        if (environment.IsDevelopment())
-        {
+            options.UseInMemoryDatabase("TestDb");
             options.EnableSensitiveDataLogging();
             options.EnableDetailedErrors();
         }
+        else
+        {
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                // Performance optimizations
+                sqlOptions.CommandTimeout(30);
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                    errorNumbersToAdd: null);
 
-        // Performance: Disable client-side evaluation warnings
-        options.ConfigureWarnings(warnings =>
-            warnings.Ignore(Microsoft.EntityFrameworkCore
-                .Diagnostics.CoreEventId.RowLimitingOperationWithoutOrderByWarning));
+                // Use query splitting for better performance with complex queries
+                sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            });
+
+            // Enable sensitive data logging only in development
+            if (environment.IsDevelopment())
+            {
+                options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();
+            }
+
+            // Performance: Disable client-side evaluation warnings
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore
+                    .Diagnostics.CoreEventId.RowLimitingOperationWithoutOrderByWarning));
+        }
     }
 }
