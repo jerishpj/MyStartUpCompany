@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.Projects.Models;
 using MyStartUpCompany.Api.Shared.Models;
+using MyStartUpCompany.Observability;
 using MyStartUpCompany.Persistence;
 using MyStartUpCompany.Persistence.Entities.Enums;
+using System.Diagnostics;
 
 namespace MyStartUpCompany.Api.Features.Projects.Queries;
 
@@ -29,43 +31,61 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
         ProjectFilterRequest request,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            "Retrieving filtered projects - ProjectIdentifier: {ProjectIdentifier}, Name: {Name}, " +
-            "Code: {Code}, Location: {Location}, CompanyId: {CompanyId}, Type: {Type}, " +
-            "SortBy: {SortBy}, SortOrder: {SortOrder}, PageNumber: {PageNumber}, PageSize: {PageSize}",
-            request.ProjectIdentifier, request.Name, request.Code, request.Location, request.CompanyId, request.Type,
-            request.SortBy, request.SortOrder, request.PageNumber, request.PageSize);
+        var stopwatch = Stopwatch.StartNew();
 
-        // Build optimized query with database-level filters (searchable columns)
-        var query = BuildQuery(request);
-
-        // Get total count
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        // Apply sorting
-        var sortedQuery = ApplySorting(query, request.SortBy, request.SortOrder);
-
-        // Apply pagination
-        var projects = await sortedQuery
-            .Skip((request.PageNumber - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .ToListAsync(cancellationToken);
-
-        // Map to response DTOs
-        var responses = projects.Select(MapToResponse).ToList();
-
-        _logger.LogInformation(
-            "Retrieved {Count} projects (Total: {TotalCount}, Page: {PageNumber}/{TotalPages})",
-            responses.Count, totalCount, request.PageNumber,
-            (int)Math.Ceiling(totalCount / (double)request.PageSize));
-
-        return new PagedResult<ProjectResponse>
+        try
         {
-            Items = responses,
-            PageNumber = request.PageNumber,
-            PageSize = request.PageSize,
-            TotalCount = totalCount
-        };
+            _logger.LogInformation(
+                "Retrieving filtered projects - ProjectIdentifier: {ProjectIdentifier}, Name: {Name}, " +
+                "Code: {Code}, Location: {Location}, CompanyId: {CompanyId}, Type: {Type}, " +
+                "SortBy: {SortBy}, SortOrder: {SortOrder}, PageNumber: {PageNumber}, PageSize: {PageSize}",
+                request.ProjectIdentifier, request.Name, request.Code, request.Location, request.CompanyId, request.Type,
+                request.SortBy, request.SortOrder, request.PageNumber, request.PageSize);
+
+            // Build optimized query with database-level filters (searchable columns)
+            var query = BuildQuery(request);
+
+            // Get total count
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            // Apply sorting
+            var sortedQuery = ApplySorting(query, request.SortBy, request.SortOrder);
+
+            // Apply pagination
+            var projects = await sortedQuery
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync(cancellationToken);
+
+            // Map to response DTOs
+            var responses = projects.Select(MapToResponse).ToList();
+
+            stopwatch.Stop();
+
+            // Record metrics
+            BusinessMetrics.RecordDbQuery("GetFilteredProjects", responses.Count, stopwatch.ElapsedMilliseconds);
+            BusinessMetrics.RecordPagingMetrics("Projects", request.PageNumber, request.PageSize, totalCount);
+
+            _logger.LogInformation(
+                "Retrieved {Count} projects (Total: {TotalCount}, Page: {PageNumber}/{TotalPages}) in {ElapsedMs}ms",
+                responses.Count, totalCount, request.PageNumber,
+                (int)Math.Ceiling(totalCount / (double)request.PageSize), stopwatch.ElapsedMilliseconds);
+
+            return new PagedResult<ProjectResponse>
+            {
+                Items = responses,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize,
+                TotalCount = totalCount
+            };
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            BusinessMetrics.RecordDbQueryError("GetFilteredProjects", stopwatch.ElapsedMilliseconds);
+            _logger.LogError(ex, "Error retrieving filtered projects");
+            throw;
+        }
     }
 
     /// <summary>

@@ -3,11 +3,13 @@
     <Project Path="src/MigrationRunner/MigrationRunner.csproj" />
     <Project Path="src/MyStartUpCompany.Api/MyStartUpCompany.Api.csproj" Id="527ebe9e-9332-4eb9-b577-ce65a84855e7" />
     <Project Path="src/MyStartUpCompany.Notifier/MyStartUpCompany.Notifier.csproj" Id="1bd7ba10-97d9-42a3-9abe-849b7c1aa00f" />
+    <Project Path="src/MyStartUpCompany.Observability/MyStartUpCompany.Observability.csproj" />
     <Project Path="src/MyStartUpCompany.Persistence/MyStartUpCompany.Persistence.csproj" />
     <Project Path="src/MyStartUpCompany.Worker/MyStartUpCompany.Worker.csproj" Id="e32139e4-491d-436e-a571-a8ddd53ac81f" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/MyStartUpCompany.Api.Tests/MyStartUpCompany.Api.Tests.csproj" Id="a2e2df0d-fd0a-439a-892c-76464e4c1e5b" />
+    <Project Path="tests/MyStartUpCompany.Observability.Tests/MyStartUpCompany.Observability.Tests.csproj" />
     <Project Path="tests/MyStartUpCompany.Worker.Tests/MyStartUpCompany.Worker.Tests.csproj" Id="7cd04f08-5646-4157-a76a-b0b99a1339f5" />
   </Folder>
 </Solution>

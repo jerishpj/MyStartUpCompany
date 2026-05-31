@@ -1,9 +1,14 @@
+using Microsoft.Extensions.Logging;
+using MyStartUpCompany.Observability;
 using MyStartUpCompany.Persistence.Extensions;
 using MyStartUpCompany.Worker;
 using MyStartUpCompany.Worker.Configuration;
 using MyStartUpCompany.Worker.Extensions;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
+using MyStartUpCompany.Worker.Health;
 using MyStartUpCompany.Worker.Services;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -30,6 +35,33 @@ if (builder.Environment.IsDevelopment())
 // ============================================================================
 // CONFIGURE SERVICES
 // ============================================================================
+
+// Configure OpenTelemetry observability for Worker service
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddOpenTelemetry(config =>
+{
+    // Create resource
+    var resource = ResourceBuilder.CreateDefault()
+        .AddService(
+            serviceName: "MyStartUpCompany.Worker",
+            serviceVersion: "1.0.0",
+            serviceNamespace: "MyStartUpCompany",
+            autoGenerateServiceInstanceId: true)
+        .AddEnvironmentVariableDetector()
+        .Build();
+
+    config.IncludeScopes = true;
+    config.IncludeFormattedMessage = true;
+
+    // Add console exporter for development
+    if (builder.Environment.IsDevelopment())
+    {
+        config.AddConsoleExporter();
+    }
+});
+
+builder.Services.AddObservability(builder.Configuration, builder.Environment);
 
 // Configure Azure Service Bus settings from configuration
 var azureServiceBusSection = builder.Configuration.GetSection(AzureServiceBusSettings.SectionName);
@@ -73,6 +105,9 @@ builder.Services.AddScoped<CompanyMessageProcessor>();
 
 // Register message mapping services (Strategy + Factory patterns for source-based mapping)
 builder.Services.AddMessageMappers();
+
+// Register worker health check service
+builder.Services.AddSingleton<IWorkerHealthCheck, WorkerHealthCheck>();
 
 // Configure Entity Framework Core with environment-based database selection
 builder.Services.AddAppDatabase(builder.Configuration, builder.Environment);

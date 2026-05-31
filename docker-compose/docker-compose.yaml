@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Jaeger for Distributed Tracing
+  # Provides trace collection, storage, and visualization
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: otel-jaeger
+    ports:
+      - "16686:16686"    # Jaeger UI (Web browser)
+      - "4318:4318"      # OTEL HTTP receiver (traces)
+      - "4317:4317"      # OTEL gRPC receiver (optional)
+      - "6831:6831/udp"  # Jaeger UDP (thrift compact)
+      - "14250:14250"    # Jaeger gRPC
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - MEMORY_MAX_TRACES=10000
+    networks:
+      - observability
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus for Metrics Collection
+  # Scrapes metrics from endpoints and stores time-series data
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: otel-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=24h'
+    networks:
+      - observability
+    depends_on:
+      - jaeger
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Grafana for Dashboards and Visualization
+  # Connects to Prometheus to display metrics in dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: otel-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+    networks:
+      - observability
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  observability:
+    driver: bridge

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.Projects.Models;
+using MyStartUpCompany.Observability;
 using MyStartUpCompany.Persistence;
+using System.Diagnostics;
 
 namespace MyStartUpCompany.Api.Features.Projects.Queries;
 
@@ -26,30 +28,48 @@ public class GetAllProjectsQueryHandler : IGetAllProjectsQueryHandler
     public async Task<IEnumerable<ProjectResponse>> HandleAsync(
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Retrieving all projects");
+        var stopwatch = Stopwatch.StartNew();
 
-        var projects = await _dbContext.Projects
-            .AsNoTracking()
-            .OrderBy(p => p.Name)
-            .ToListAsync(cancellationToken);
-
-        var responses = projects.Select(p => new ProjectResponse
+        try
         {
-            Id = p.Id,
-            ProjectIdentifier = p.ProjectIdentifier,
-            Name = p.Name,
-            Code = p.Code,
-            Location = p.Location,
-            CompanyId = p.CompanyId,
-            Type = p.Type.ToString(),
-            Details = MapProjectDetails(p.Details),
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt
-        }).ToList();
+            _logger.LogInformation("Retrieving all projects");
 
-        _logger.LogInformation("Retrieved {Count} projects", responses.Count);
+            var projects = await _dbContext.Projects
+                .AsNoTracking()
+                .OrderBy(p => p.Name)
+                .ToListAsync(cancellationToken);
 
-        return responses;
+            var responses = projects.Select(p => new ProjectResponse
+            {
+                Id = p.Id,
+                ProjectIdentifier = p.ProjectIdentifier,
+                Name = p.Name,
+                Code = p.Code,
+                Location = p.Location,
+                CompanyId = p.CompanyId,
+                Type = p.Type.ToString(),
+                Details = MapProjectDetails(p.Details),
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt
+            }).ToList();
+
+            stopwatch.Stop();
+
+            // Record metrics
+            BusinessMetrics.RecordDbQuery("GetAllProjects", responses.Count, stopwatch.ElapsedMilliseconds);
+
+            _logger.LogInformation("Retrieved {Count} projects in {ElapsedMs}ms", 
+                responses.Count, stopwatch.ElapsedMilliseconds);
+
+            return responses;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            BusinessMetrics.RecordDbQueryError("GetAllProjects", stopwatch.ElapsedMilliseconds);
+            _logger.LogError(ex, "Error retrieving all projects");
+            throw;
+        }
     }
 
     /// <summary>

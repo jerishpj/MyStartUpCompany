@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: mystartupcorp
+  labels:
+    app: worker
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: worker
+      containers:
+      - name: worker
+        image: mystartupcorp.azurecr.io/worker:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: connection-string
+        - name: AzureServiceBus__ConnectionString
+          valueFrom:
+            secretKeyRef:
+              name: servicebus-secrets
+              key: connection-string
+        - name: AzureServiceBus__TopicName
+          value: "companycreatedevent"
+        - name: AzureServiceBus__SubscriptionName
+          value: "worker-subscription"
+        - name: AzureServiceBus__MaxConcurrentCalls
+          value: "5"
+        - name: Observability__Enabled
+          value: "true"
+        - name: Observability__ServiceName
+          value: "MyStartUpCompany.Worker"
+        - name: Observability__ServiceVersion
+          value: "1.0.0"
+        - name: Observability__Environment
+          value: "production"
+        - name: Observability__SamplingRate
+          value: "0.1"
+        - name: Observability__Exporters__Otlp__Endpoint
+          value: "http://otel-collector.observability:4317"
+        - name: Observability__Exporters__Otlp__Enabled
+          value: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1024Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps aux | grep dotnet | grep -q MyStartUpCompany.Worker"
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - worker
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: worker
+  namespace: mystartupcorp
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: worker-hpa
+  namespace: mystartupcorp
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: worker
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

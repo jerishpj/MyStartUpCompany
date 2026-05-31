@@ -1,8 +1,14 @@
+using MyStartUpCompany.Observability;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+// Add OpenTelemetry observability
+builder.Services.AddObservability(builder.Configuration, builder.Environment);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CorrelationIdAccessor>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -22,6 +28,12 @@ if (app.Environment.IsDevelopment())
         options.WithDocumentDownloadType(DocumentDownloadType.Both);
     });
 }
+
+// Use trace context middleware (should be early in pipeline)
+app.UseTraceContext();
+
+// Use HTTP metrics middleware
+app.UseHttpMetrics();
 
 app.UseHttpsRedirection();
 

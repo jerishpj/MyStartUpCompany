@@ -1,0 +1,68 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'local-development'
+    environment: 'development'
+
+scrape_configs:
+  # MyStartUpCompany.Api metrics endpoint
+  - job_name: 'mystartupcorp-api'
+    static_configs:
+      - targets: ['host.docker.internal:9091']  # Windows/Mac
+        # - targets: ['172.17.0.1:9091']        # Linux
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__scheme__]
+        regex: 'http'
+        target_label: 'scheme'
+      - source_labels: []
+        target_label: 'service'
+        replacement: 'api'
+      - source_labels: []
+        target_label: 'application'
+        replacement: 'mystartupcorp'
+
+  # MyStartUpCompany.Worker metrics endpoint
+  - job_name: 'mystartupcorp-worker'
+    static_configs:
+      - targets: ['host.docker.internal:9092']  # Windows/Mac
+        # - targets: ['172.17.0.1:9092']        # Linux
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: []
+        target_label: 'service'
+        replacement: 'worker'
+      - source_labels: []
+        target_label: 'application'
+        replacement: 'mystartupcorp'
+
+  # MyStartUpCompany.Notifier metrics endpoint
+  - job_name: 'mystartupcorp-notifier'
+    static_configs:
+      - targets: ['host.docker.internal:9093']  # Windows/Mac
+        # - targets: ['172.17.0.1:9093']        # Linux
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: []
+        target_label: 'service'
+        replacement: 'notifier'
+      - source_labels: []
+        target_label: 'application'
+        replacement: 'mystartupcorp'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: []
+        target_label: 'service'
+        replacement: 'prometheus'

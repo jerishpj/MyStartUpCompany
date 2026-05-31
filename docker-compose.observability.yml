@@ -1,0 +1,168 @@
+version: '3.9'
+
+services:
+  # OpenTelemetry Collector - Central collection point for all observability data
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    container_name: otel-collector
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+      - "9411:9411"     # Zipkin receiver
+      - "14250:14250"   # Jaeger gRPC receiver
+    environment:
+      - GOGC=80
+    depends_on:
+      - jaeger
+      - prometheus
+    networks:
+      - observability
+
+  # Jaeger - Distributed tracing backend
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "6831:6831/udp"  # Jaeger agent (compact thrift protocol)
+      - "16686:16686"    # Jaeger UI
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - observability
+
+  # Prometheus - Metrics storage and querying
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - observability
+
+  # Grafana - Visualization and dashboarding
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+      - jaeger
+    networks:
+      - observability
+
+  # SQL Server - Application database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "P@ssw0rd123!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - observability
+
+  # Azure Service Bus Emulator (for local development)
+  # Note: As of 2024, Azure Service Bus Emulator is not available in Docker
+  # Use Azure Service Bus connection string from Azure Portal or local testing
+
+  # API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: mystartupcorp-api
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=MyStartUpCompanyDb;User Id=sa;Password=P@ssw0rd123!;Encrypt=false;TrustServerCertificate=true;
+      - Observability__Exporters__Otlp__Endpoint=http://otel-collector:4317
+      - Observability__ServiceName=MyStartUpCompany.Api
+      - Observability__Environment=docker
+    depends_on:
+      - sqlserver
+      - otel-collector
+    networks:
+      - observability
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Worker Service
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: mystartupcorp-worker
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=MyStartUpCompanyDb;User Id=sa;Password=P@ssw0rd123!;Encrypt=false;TrustServerCertificate=true;
+      - AzureServiceBus__ConnectionString=${AZURE_SERVICE_BUS_CONNECTION_STRING:-}
+      - AzureServiceBus__TopicName=companycreatedevent
+      - AzureServiceBus__SubscriptionName=worker-subscription
+      - Observability__Exporters__Otlp__Endpoint=http://otel-collector:4317
+      - Observability__ServiceName=MyStartUpCompany.Worker
+      - Observability__Environment=docker
+    depends_on:
+      - sqlserver
+      - otel-collector
+    networks:
+      - observability
+
+  # Notifier Service
+  notifier:
+    build:
+      context: .
+      dockerfile: Dockerfile.notifier
+    container_name: mystartupcorp-notifier
+    ports:
+      - "8081:8080"
+      - "8444:8443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Observability__Exporters__Otlp__Endpoint=http://otel-collector:4317
+      - Observability__ServiceName=MyStartUpCompany.Notifier
+      - Observability__Environment=docker
+    depends_on:
+      - otel-collector
+    networks:
+      - observability
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  sqlserver-data:

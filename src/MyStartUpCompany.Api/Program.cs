@@ -7,6 +7,7 @@ using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
 using MyStartUpCompany.Api.Features.Projects.Queries;
 using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Api.Shared.Filters;
+using MyStartUpCompany.Observability;
 using MyStartUpCompany.Persistence;
 using MyStartUpCompany.Persistence.Extensions;
 using Scalar.AspNetCore;
@@ -22,6 +23,11 @@ public partial class Program
         {
             options.Filters.Add<FluentValidationFilter>();
         });
+
+        // Add OpenTelemetry observability
+        builder.Services.AddObservability(builder.Configuration, builder.Environment);
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<CorrelationIdAccessor>();
 
         // Register FluentValidation validators
         builder.Services.AddValidatorsFromAssemblyContaining<CompanyRequestValidator>();
@@ -68,6 +74,12 @@ public partial class Program
                 options.WithDocumentDownloadType(DocumentDownloadType.Both);
             });
         }
+
+        // Use trace context middleware (should be early in pipeline)
+        app.UseTraceContext();
+
+        // Use HTTP metrics middleware
+        app.UseHttpMetrics();
 
         // Use exception handler middleware
         app.UseExceptionHandler();

@@ -1,0 +1,39 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /build
+
+# Copy project files
+COPY ["src/MyStartUpCompany.Worker/MyStartUpCompany.Worker.csproj", "src/MyStartUpCompany.Worker/"]
+COPY ["src/MyStartUpCompany.Persistence/MyStartUpCompany.Persistence.csproj", "src/MyStartUpCompany.Persistence/"]
+COPY ["src/MyStartUpCompany.Observability/MyStartUpCompany.Observability.csproj", "src/MyStartUpCompany.Observability/"]
+
+# Restore dependencies
+RUN dotnet restore "src/MyStartUpCompany.Worker/MyStartUpCompany.Worker.csproj"
+
+# Copy source code
+COPY . .
+
+# Build application
+RUN dotnet build "src/MyStartUpCompany.Worker/MyStartUpCompany.Worker.csproj" -c Release -o /app/build
+
+# Publish stage
+FROM build AS publish
+RUN dotnet publish "src/MyStartUpCompany.Worker/MyStartUpCompany.Worker.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+WORKDIR /app
+
+# Copy published application
+COPY --from=publish /app/publish .
+
+# Set environment for observability
+ENV OTEL_SDK_DISABLED=false
+ENV OTEL_TRACES_EXPORTER=otlp
+ENV OTEL_METRICS_EXPORTER=otlp
+ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+ENV OTEL_SERVICE_NAME=MyStartUpCompany.Worker
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Run application
+ENTRYPOINT ["dotnet", "MyStartUpCompany.Worker.dll"]

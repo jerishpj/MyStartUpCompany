@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
+using MyStartUpCompany.Observability;
 using MyStartUpCompany.Persistence;
+using System.Diagnostics;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 
@@ -19,26 +21,44 @@ public class GetAllCompaniesQueryHandler : IGetAllCompaniesQueryHandler
 
     public async Task<IEnumerable<Company>> HandleAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Retrieving all companies");
+        var stopwatch = Stopwatch.StartNew();
 
-        var companies = await _dbContext.Companies
-            .AsNoTracking()
-            .Select(c => new Company
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                Address = c.Address,
-                City = c.City,
-                Region = c.Region,
-                PostalCode = c.PostalCode,
-                Country = c.Country,
-                Phone = c.Phone,
-            })
-            .ToListAsync(cancellationToken);
+        try
+        {
+            _logger.LogInformation("Retrieving all companies");
 
-        _logger.LogInformation("Retrieved {Count} companies", companies.Count);
+            var companies = await _dbContext.Companies
+                .AsNoTracking()
+                .Select(c => new Company
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    Address = c.Address,
+                    City = c.City,
+                    Region = c.Region,
+                    PostalCode = c.PostalCode,
+                    Country = c.Country,
+                    Phone = c.Phone,
+                })
+                .ToListAsync(cancellationToken);
 
-        return companies;
+            stopwatch.Stop();
+
+            // Record metrics
+            BusinessMetrics.RecordDbQuery("GetAllCompanies", companies.Count, stopwatch.ElapsedMilliseconds);
+
+            _logger.LogInformation("Retrieved {Count} companies in {ElapsedMs}ms", 
+                companies.Count, stopwatch.ElapsedMilliseconds);
+
+            return companies;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            BusinessMetrics.RecordDbQueryError("GetAllCompanies", stopwatch.ElapsedMilliseconds);
+            _logger.LogError(ex, "Error retrieving all companies");
+            throw;
+        }
     }
 }

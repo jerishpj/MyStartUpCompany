@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MyStartUpCompany.Persistence\MyStartUpCompany.Persistence.csproj" />
+    <ProjectReference Include="..\MyStartUpCompany.Observability\MyStartUpCompany.Observability.csproj" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

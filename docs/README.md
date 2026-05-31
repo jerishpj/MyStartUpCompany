@@ -21,6 +21,11 @@ Welcome to the MyStartUpCompany project documentation. This guide covers setup, 
 ### 🚀 Getting Started & Local Development
 - **[Local Development Guide](LOCAL_DEVELOPMENT.md)** - Setup, prerequisites, running locally, development workflow
 
+### 📊 Observability & Monitoring (OpenTelemetry)
+- **[OpenTelemetry Architecture](OPENTELEMETRY_ARCHITECTURE.md)** - OTEL architecture, local setup, signal types, integration patterns
+- **[Local OTEL Testing Guide](LOCAL_OTEL_TESTING_GUIDE.md)** - Step-by-step guide for local OTEL validation, prerequisites, test scenarios, troubleshooting
+- **[Docker Compose for Local OTEL](../docker-compose/README.md)** - Local observability stack (Jaeger, Prometheus, Grafana) setup and management
+
 ### 🗄️ Database & Migrations
 - **[Migration Strategy](MIGRATION_STRATEGY.md)** - Understanding database migrations, running MigrationRunner, migration workflows
 - **[Architecture & Design](ARCHITECTURE.md)** - MigrationRunner design, why this approach, technical decisions
@@ -36,6 +41,7 @@ Welcome to the MyStartUpCompany project documentation. This guide covers setup, 
 - **[Migration Strategy](MIGRATION_STRATEGY.md)** - Troubleshooting migrations
 - **[Containerization Guide](CONTAINERIZATION_GUIDE.md)** - Troubleshooting containers
 - **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Troubleshooting deployments
+- **[Local OTEL Testing Guide](LOCAL_OTEL_TESTING_GUIDE.md)** - Troubleshooting OTEL stack and integration
 
 ---
 
@@ -109,6 +115,31 @@ docker build -f src/MyStartUpCompany.Api/Dockerfile -t mystartupcompany:latest .
 ### Run in container
 ``bash
 docker-compose up
+``
+
+### Start local OTEL stack (Jaeger, Prometheus, Grafana)
+``powershell
+cd docker-compose
+.\startup.ps1
+``
+
+``bash
+cd docker-compose
+./startup.sh
+``
+
+### Validate local OTEL setup
+``powershell
+.\validate-otel-local.ps1
+``
+
+``bash
+./validate-otel-local.sh
+``
+
+### Run OTEL tests
+``bash
+dotnet test tests/MyStartUpCompany.Observability.Tests
 ``
 
 ---
@@ -203,9 +234,12 @@ When contributing to this project:
 
 - [Architecture & Design](ARCHITECTURE.md) - Technical decisions and design patterns
 - [Local Development Guide](LOCAL_DEVELOPMENT.md) - Complete setup instructions
+- [OpenTelemetry Architecture](OPENTELEMETRY_ARCHITECTURE.md) - OTEL architecture and integration
+- [Local OTEL Testing Guide](LOCAL_OTEL_TESTING_GUIDE.md) - Hands-on OTEL validation and testing
 - [Migration Strategy](MIGRATION_STRATEGY.md) - Database management
 - [Containerization Guide](CONTAINERIZATION_GUIDE.md) - Docker and containers
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) - CI/CD and production deployment
+- [Local OTEL Stack (docker-compose)](../docker-compose/) - Jaeger, Prometheus, Grafana setup
 
 ---
 
