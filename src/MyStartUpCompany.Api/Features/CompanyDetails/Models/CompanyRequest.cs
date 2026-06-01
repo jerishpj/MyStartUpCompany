@@ -33,13 +33,13 @@ public record CompanyRequest
     public string? PostalCode { get; init; }
 
     /// <summary>
-    /// Page number (1-based)
+    /// Page number (1-based). Defaults to 1 if not provided or invalid.
     /// </summary>
     /// <example>1</example>
     public int PageNumber { get; init; } = 1;
 
     /// <summary>
-    /// Number of items per page
+    /// Number of items per page. Defaults to 10 if not provided or invalid.
     /// </summary>
     /// <example>10</example>
     public int PageSize { get; init; } = 10;

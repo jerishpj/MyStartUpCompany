@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Features.CompanyDetails.Binders;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
@@ -22,6 +23,8 @@ public partial class Program
         builder.Services.AddControllers(options =>
         {
             options.Filters.Add<FluentValidationFilter>();
+            // Register custom model binder for silent defaulting of pagination parameters
+            options.ModelBinderProviders.Insert(0, new CompanyRequestModelBinderProvider());
         });
 
         // Add OpenTelemetry observability
