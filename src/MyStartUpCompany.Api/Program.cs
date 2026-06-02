@@ -27,7 +27,7 @@ public partial class Program
         {
             options.Filters.Add<FluentValidationFilter>();
             // Register custom model binder for silent defaulting of pagination parameters
-            options.ModelBinderProviders.Insert(0, new CompanyRequestModelBinderProvider());
+            options.ModelBinderProviders.Insert(0, new SearchCompanyRequestModelBinderProvider());
         });
 
         // Add OpenTelemetry observability
@@ -36,7 +36,7 @@ public partial class Program
         builder.Services.AddScoped<CorrelationIdAccessor>();
 
         // Register FluentValidation validators
-        builder.Services.AddValidatorsFromAssemblyContaining<CompanyRequestValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<SearchCompanyRequestValidator>();
         builder.Services.AddScoped<FluentValidationFilter>();
 
         // Configure ProblemDetails with custom factory

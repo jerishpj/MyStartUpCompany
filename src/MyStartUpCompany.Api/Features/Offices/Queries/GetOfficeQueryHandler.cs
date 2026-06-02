@@ -17,7 +17,7 @@ public interface IGetOfficeQueryHandler
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The office if found</returns>
     /// <exception cref="EntityNotFoundException">Thrown if office is not found</exception>
-    Task<Office> HandleAsync(int id, CancellationToken cancellationToken = default);
+    Task<OfficeResponse> HandleAsync(int id, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -37,14 +37,14 @@ public class GetOfficeQueryHandler : IGetOfficeQueryHandler
     }
 
     /// <inheritdoc/>
-    public async Task<Office> HandleAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<OfficeResponse> HandleAsync(int id, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving office with ID: {OfficeId}", id);
 
         var office = await _dbContext.Offices
             .AsNoTracking()
             .Where(o => o.Id == id)
-            .Select(o => new Office
+            .Select(o => new OfficeResponse
             {
                 Id = o.Id,
                 BuildingId = o.BuildingId,
@@ -69,7 +69,7 @@ public class GetOfficeQueryHandler : IGetOfficeQueryHandler
         if (office == null)
         {
             _logger.LogWarning("Office not found with ID: {OfficeId}", id);
-            throw new NotFoundException(nameof(Office), id);
+            throw new NotFoundException("Office", id);
         }
 
         _logger.LogInformation("Successfully retrieved office: {OfficeName} (ID: {OfficeId})",

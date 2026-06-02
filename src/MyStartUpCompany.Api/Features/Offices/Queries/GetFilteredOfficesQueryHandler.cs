@@ -6,57 +6,6 @@ using MyStartUpCompany.Persistence;
 namespace MyStartUpCompany.Api.Features.Offices.Queries;
 
 /// <summary>
-/// Request model for filtering and paginating offices
-/// </summary>
-public class OfficeRequest
-{
-    /// <summary>
-    /// Search term for office name or description
-    /// </summary>
-    public string? SearchTerm { get; set; }
-
-    /// <summary>
-    /// Filter by building ID
-    /// </summary>
-    public int? BuildingId { get; set; }
-
-    /// <summary>
-    /// Filter by department
-    /// </summary>
-    public string? Department { get; set; }
-
-    /// <summary>
-    /// Filter by office type
-    /// </summary>
-    public string? OfficeType { get; set; }
-
-    /// <summary>
-    /// Filter by active status
-    /// </summary>
-    public bool? IsActive { get; set; }
-
-    /// <summary>
-    /// Page number (1-based)
-    /// </summary>
-    public int PageNumber { get; set; } = 1;
-
-    /// <summary>
-    /// Items per page
-    /// </summary>
-    public int PageSize { get; set; } = 10;
-
-    /// <summary>
-    /// Sort field
-    /// </summary>
-    public string? SortBy { get; set; } = "Name";
-
-    /// <summary>
-    /// Sort order (asc/desc)
-    /// </summary>
-    public string? SortOrder { get; set; } = "asc";
-}
-
-/// <summary>
 /// Query handler for retrieving filtered and paginated offices
 /// </summary>
 public interface IGetFilteredOfficesQueryHandler
@@ -67,7 +16,7 @@ public interface IGetFilteredOfficesQueryHandler
     /// <param name="request">Filter and pagination parameters</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated result of offices</returns>
-    Task<PagedResult<Office>> HandleAsync(OfficeRequest request, CancellationToken cancellationToken = default);
+    Task<PagedResult<OfficeResponse>> HandleAsync(SearchOfficeRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -87,8 +36,8 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResult<Office>> HandleAsync(
-        OfficeRequest request,
+    public async Task<PagedResult<OfficeResponse>> HandleAsync(
+        SearchOfficeRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
@@ -138,7 +87,7 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
         var offices = await query
             .Skip(skipCount)
             .Take(request.PageSize)
-            .Select(o => new Office
+            .Select(o => new OfficeResponse
             {
                 Id = o.Id,
                 BuildingId = o.BuildingId,
@@ -164,7 +113,7 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
             "Retrieved {OfficeCount} offices out of {TotalCount} matching criteria",
             offices.Count, totalCount);
 
-        return new PagedResult<Office>
+        return new PagedResult<OfficeResponse>
         {
             Items = offices,
             PageNumber = request.PageNumber,

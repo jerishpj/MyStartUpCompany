@@ -26,7 +26,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithDefaultPagination_ReturnsFirstPage()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = 1,
             PageSize = 10
@@ -47,7 +47,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithSecondPage_ReturnsCorrectItems()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = 2,
             PageSize = 5
@@ -70,7 +70,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithVariousPageSizes_ReturnsCorrectCount(int pageNumber, int pageSize)
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = pageNumber,
             PageSize = pageSize
@@ -88,7 +88,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_PaginationMetadata_IsCorrect()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = 2,
             PageSize = 10
@@ -110,7 +110,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByCountry_ReturnsOnlyMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Country = "United States",
             PageNumber = 1,
@@ -130,7 +130,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByNonExistentCountry_ReturnsEmptyResult()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Country = "NonExistentCountry",
             PageNumber = 1,
@@ -150,7 +150,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByPartialCountry_ReturnsMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Country = "United",
             PageNumber = 1,
@@ -174,7 +174,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByRegion_ReturnsOnlyMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Region = "CA",
             PageNumber = 1,
@@ -194,7 +194,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByRegion_HandlesNullRegion()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Region = null,
             PageNumber = 1,
@@ -217,7 +217,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByCity_ReturnsOnlyMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             City = "San Francisco",
             PageNumber = 1,
@@ -237,7 +237,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByPartialCity_ReturnsMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             City = "San",
             PageNumber = 1,
@@ -257,7 +257,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByCity_HandlesEmptyString()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             City = "",
             PageNumber = 1,
@@ -280,7 +280,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByPostalCode_ReturnsExactMatch()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PostalCode = "94105",
             PageNumber = 1,
@@ -299,7 +299,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_FilterByNonExistentPostalCode_ReturnsEmpty()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PostalCode = "99999",
             PageNumber = 1,
@@ -323,7 +323,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_SearchByName_ReturnsMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             SearchTerm = "Acme",
             PageNumber = 1,
@@ -345,7 +345,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_SearchByDescription_ReturnsMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             SearchTerm = "software",
             PageNumber = 1,
@@ -364,7 +364,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_SearchByPartialTerm_ReturnsMatchingCompanies()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             SearchTerm = "Tech",
             PageNumber = 1,
@@ -383,7 +383,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_SearchWithSpecialCharacters_EscapesCorrectly()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             SearchTerm = "%_[]",
             PageNumber = 1,
@@ -405,7 +405,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithMultipleFilters_ReturnsIntersection()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Country = "United States",
             Region = "CA",
@@ -434,7 +434,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithAllFilters_ReturnsCorrectResult()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Country = "United States",
             Region = "CA",
@@ -456,7 +456,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_CombinedFiltersWithNoMatches_ReturnsEmpty()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             Country = "United States",
             City = "NonExistentCity",
@@ -481,7 +481,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_ResultsAreOrderedByName()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = 1,
             PageSize = 50
@@ -498,8 +498,8 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_OrderingIsStableAcrossPages()
     {
         // Arrange
-        var page1Request = new CompanyRequest { PageNumber = 1, PageSize = 5 };
-        var page2Request = new CompanyRequest { PageNumber = 2, PageSize = 5 };
+        var page1Request = new SearchCompanyRequest { PageNumber = 1, PageSize = 5 };
+        var page2Request = new SearchCompanyRequest { PageNumber = 2, PageSize = 5 };
 
         // Act
         var page1Result = await _handler.HandleAsync(page1Request);
@@ -525,7 +525,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithNoMatches_ReturnsEmptyResult()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             SearchTerm = "NonExistentCompany12345XYZ",
             PageNumber = 1,
@@ -547,7 +547,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_PageBeyondTotalPages_ReturnsEmpty()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = 999,
             PageSize = 10
@@ -570,7 +570,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
         var handler = new GetFilteredCompaniesQueryHandler(
             emptyContext, 
             LoggerMock.Create<GetFilteredCompaniesQueryHandler>());
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10 };
 
         // Act
         var result = await handler.HandleAsync(request);
@@ -591,7 +591,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithCancellationToken_CanBeCancelled()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10 };
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -610,7 +610,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_WithLargePageSize_ReturnsAllAvailableItems()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = 1,
             PageSize = 1000
@@ -629,7 +629,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_ReturnsProjectedProperties()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 1 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 1 };
 
         // Act
         var result = await _handler.HandleAsync(request);
@@ -650,7 +650,7 @@ public class GetFilteredCompaniesQueryHandlerTests : IDisposable
     public async Task HandleAsync_MapsAllPropertiesCorrectly()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             SearchTerm = "Acme Corporation",
             PageNumber = 1,

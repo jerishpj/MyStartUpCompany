@@ -4,36 +4,36 @@ using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Binders;
 
 /// <summary>
-/// Custom model binder for CompanyRequest that silently defaults invalid pagination values.
+/// Custom model binder for SearchCompanyRequest that silently defaults invalid pagination values.
 /// If PageNumber or PageSize are not valid positive numbers, they are set to their defaults without validation errors.
 /// </summary>
-public class CompanyRequestModelBinder : IModelBinder
+public class SearchCompanyRequestModelBinder : IModelBinder
 {
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
-        if (bindingContext.ModelType != typeof(CompanyRequest))
+        if (bindingContext.ModelType != typeof(SearchCompanyRequest))
         {
             return Task.CompletedTask;
         }
 
-        var request = new CompanyRequest();
+        var request = new SearchCompanyRequest();
         var valueProvider = bindingContext.ValueProvider;
 
         // Extract and bind properties
-        var region = GetStringValue(valueProvider, nameof(CompanyRequest.Region));
-        var country = GetStringValue(valueProvider, nameof(CompanyRequest.Country));
-        var city = GetStringValue(valueProvider, nameof(CompanyRequest.City));
-        var postalCode = GetStringValue(valueProvider, nameof(CompanyRequest.PostalCode));
-        var searchTerm = GetStringValue(valueProvider, nameof(CompanyRequest.SearchTerm));
+        var region = GetStringValue(valueProvider, nameof(SearchCompanyRequest.Region));
+        var country = GetStringValue(valueProvider, nameof(SearchCompanyRequest.Country));
+        var city = GetStringValue(valueProvider, nameof(SearchCompanyRequest.City));
+        var postalCode = GetStringValue(valueProvider, nameof(SearchCompanyRequest.PostalCode));
+        var searchTerm = GetStringValue(valueProvider, nameof(SearchCompanyRequest.SearchTerm));
 
         // Extract and safely default PageNumber
-        var pageNumber = GetIntValueOrDefault(valueProvider, nameof(CompanyRequest.PageNumber), 1);
+        var pageNumber = GetIntValueOrDefault(valueProvider, nameof(SearchCompanyRequest.PageNumber), 1);
 
         // Extract and safely default PageSize
-        var pageSize = GetIntValueOrDefault(valueProvider, nameof(CompanyRequest.PageSize), 10);
+        var pageSize = GetIntValueOrDefault(valueProvider, nameof(SearchCompanyRequest.PageSize), 10);
 
         // Create the request with bound values
-        request = new CompanyRequest
+        request = new SearchCompanyRequest
         {
             Region = region,
             Country = country,

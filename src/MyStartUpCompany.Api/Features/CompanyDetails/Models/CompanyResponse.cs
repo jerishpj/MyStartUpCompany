@@ -1,12 +1,13 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Models;
 
 /// <summary>
-/// Represents a company's detailed information
+/// Response DTO for company's detailed information
+/// Returned by GET /api/companies/{id} and GET /api/companies endpoints
 /// </summary>
 [DisplayName("Company")]
-public record Company
+public record CompanyResponse
 {
     /// <summary>
     /// The unique identifier for the company

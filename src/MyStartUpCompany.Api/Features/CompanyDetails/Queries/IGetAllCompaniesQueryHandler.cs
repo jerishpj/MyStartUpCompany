@@ -4,5 +4,5 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 
 public interface IGetAllCompaniesQueryHandler
 {
-    Task<IEnumerable<Company>> HandleAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<CompanyResponse>> HandleAsync(CancellationToken cancellationToken = default);
 }

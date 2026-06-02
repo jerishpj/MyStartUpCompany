@@ -19,7 +19,7 @@ public class GetAllCompaniesQueryHandler : IGetAllCompaniesQueryHandler
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Company>> HandleAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CompanyResponse>> HandleAsync(CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -29,7 +29,7 @@ public class GetAllCompaniesQueryHandler : IGetAllCompaniesQueryHandler
 
             var companies = await _dbContext.Companies
                 .AsNoTracking()
-                .Select(c => new Company
+                .Select(c => new CompanyResponse
                 {
                     Id = c.Id,
                     Name = c.Name,

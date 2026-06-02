@@ -17,7 +17,7 @@ public interface IGetBuildingQueryHandler
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The building if found</returns>
     /// <exception cref="EntityNotFoundException">Thrown if building is not found</exception>
-    Task<Building> HandleAsync(int id, CancellationToken cancellationToken = default);
+    Task<BuildingResponse> HandleAsync(int id, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -37,14 +37,14 @@ public class GetBuildingQueryHandler : IGetBuildingQueryHandler
     }
 
     /// <inheritdoc/>
-    public async Task<Building> HandleAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<BuildingResponse> HandleAsync(int id, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving building with ID: {BuildingId}", id);
 
         var building = await _dbContext.Buildings
             .AsNoTracking()
             .Where(b => b.Id == id)
-            .Select(b => new Building
+            .Select(b => new BuildingResponse
             {
                 Id = b.Id,
                 LocationId = b.LocationId,
@@ -66,7 +66,7 @@ public class GetBuildingQueryHandler : IGetBuildingQueryHandler
         if (building == null)
         {
             _logger.LogWarning("Building not found with ID: {BuildingId}", id);
-            throw new NotFoundException(nameof(Building), id);
+            throw new NotFoundException("Building", id);
         }
 
         _logger.LogInformation("Successfully retrieved building: {BuildingName} (ID: {BuildingId})",

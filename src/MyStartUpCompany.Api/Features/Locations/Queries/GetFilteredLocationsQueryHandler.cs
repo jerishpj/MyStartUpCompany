@@ -6,57 +6,6 @@ using MyStartUpCompany.Persistence;
 namespace MyStartUpCompany.Api.Features.Locations.Queries;
 
 /// <summary>
-/// Request model for filtering and paginating locations
-/// </summary>
-public class LocationRequest
-{
-    /// <summary>
-    /// Search term for location name or description
-    /// </summary>
-    public string? SearchTerm { get; set; }
-
-    /// <summary>
-    /// Filter by company ID
-    /// </summary>
-    public int? CompanyId { get; set; }
-
-    /// <summary>
-    /// Filter by country
-    /// </summary>
-    public string? Country { get; set; }
-
-    /// <summary>
-    /// Filter by city
-    /// </summary>
-    public string? City { get; set; }
-
-    /// <summary>
-    /// Filter by active status
-    /// </summary>
-    public bool? IsActive { get; set; }
-
-    /// <summary>
-    /// Page number (1-based)
-    /// </summary>
-    public int PageNumber { get; set; } = 1;
-
-    /// <summary>
-    /// Items per page
-    /// </summary>
-    public int PageSize { get; set; } = 10;
-
-    /// <summary>
-    /// Sort field
-    /// </summary>
-    public string? SortBy { get; set; } = "Name";
-
-    /// <summary>
-    /// Sort order (asc/desc)
-    /// </summary>
-    public string? SortOrder { get; set; } = "asc";
-}
-
-/// <summary>
 /// Query handler for retrieving filtered and paginated locations
 /// </summary>
 public interface IGetFilteredLocationsQueryHandler
@@ -67,7 +16,7 @@ public interface IGetFilteredLocationsQueryHandler
     /// <param name="request">Filter and pagination parameters</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated result of locations</returns>
-    Task<PagedResult<Location>> HandleAsync(LocationRequest request, CancellationToken cancellationToken = default);
+    Task<PagedResult<LocationResponse>> HandleAsync(SearchLocationRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -87,8 +36,8 @@ public class GetFilteredLocationsQueryHandler : IGetFilteredLocationsQueryHandle
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResult<Location>> HandleAsync(
-        LocationRequest request,
+    public async Task<PagedResult<LocationResponse>> HandleAsync(
+        SearchLocationRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
@@ -138,7 +87,7 @@ public class GetFilteredLocationsQueryHandler : IGetFilteredLocationsQueryHandle
         var locations = await query
             .Skip(skipCount)
             .Take(request.PageSize)
-            .Select(l => new Location
+            .Select(l => new LocationResponse
             {
                 Id = l.Id,
                 CompanyId = l.CompanyId,
@@ -162,7 +111,7 @@ public class GetFilteredLocationsQueryHandler : IGetFilteredLocationsQueryHandle
             "Retrieved {LocationCount} locations out of {TotalCount} matching criteria",
             locations.Count, totalCount);
 
-        return new PagedResult<Location>
+        return new PagedResult<LocationResponse>
         {
             Items = locations,
             PageNumber = request.PageNumber,

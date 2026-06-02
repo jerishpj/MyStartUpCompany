@@ -6,52 +6,6 @@ using MyStartUpCompany.Persistence;
 namespace MyStartUpCompany.Api.Features.Buildings.Queries;
 
 /// <summary>
-/// Request model for filtering and paginating buildings
-/// </summary>
-public class BuildingRequest
-{
-    /// <summary>
-    /// Search term for building name or description
-    /// </summary>
-    public string? SearchTerm { get; set; }
-
-    /// <summary>
-    /// Filter by location ID
-    /// </summary>
-    public int? LocationId { get; set; }
-
-    /// <summary>
-    /// Filter by building code
-    /// </summary>
-    public string? BuildingCode { get; set; }
-
-    /// <summary>
-    /// Filter by active status
-    /// </summary>
-    public bool? IsActive { get; set; }
-
-    /// <summary>
-    /// Page number (1-based)
-    /// </summary>
-    public int PageNumber { get; set; } = 1;
-
-    /// <summary>
-    /// Items per page
-    /// </summary>
-    public int PageSize { get; set; } = 10;
-
-    /// <summary>
-    /// Sort field
-    /// </summary>
-    public string? SortBy { get; set; } = "Name";
-
-    /// <summary>
-    /// Sort order (asc/desc)
-    /// </summary>
-    public string? SortOrder { get; set; } = "asc";
-}
-
-/// <summary>
 /// Query handler for retrieving filtered and paginated buildings
 /// </summary>
 public interface IGetFilteredBuildingsQueryHandler
@@ -62,7 +16,7 @@ public interface IGetFilteredBuildingsQueryHandler
     /// <param name="request">Filter and pagination parameters</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated result of buildings</returns>
-    Task<PagedResult<Building>> HandleAsync(BuildingRequest request, CancellationToken cancellationToken = default);
+    Task<PagedResult<BuildingResponse>> HandleAsync(SearchBuildingRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -82,8 +36,8 @@ public class GetFilteredBuildingsQueryHandler : IGetFilteredBuildingsQueryHandle
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResult<Building>> HandleAsync(
-        BuildingRequest request,
+    public async Task<PagedResult<BuildingResponse>> HandleAsync(
+        SearchBuildingRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
@@ -128,7 +82,7 @@ public class GetFilteredBuildingsQueryHandler : IGetFilteredBuildingsQueryHandle
         var buildings = await query
             .Skip(skipCount)
             .Take(request.PageSize)
-            .Select(b => new Building
+            .Select(b => new BuildingResponse
             {
                 Id = b.Id,
                 LocationId = b.LocationId,
@@ -151,7 +105,7 @@ public class GetFilteredBuildingsQueryHandler : IGetFilteredBuildingsQueryHandle
             "Retrieved {BuildingCount} buildings out of {TotalCount} matching criteria",
             buildings.Count, totalCount);
 
-        return new PagedResult<Building>
+        return new PagedResult<BuildingResponse>
         {
             Items = buildings,
             PageNumber = request.PageNumber,

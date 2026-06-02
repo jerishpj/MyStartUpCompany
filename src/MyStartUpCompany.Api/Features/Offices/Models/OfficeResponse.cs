@@ -3,10 +3,11 @@ using System.ComponentModel;
 namespace MyStartUpCompany.Api.Features.Offices.Models;
 
 /// <summary>
-/// Represents an office branch within a building
+/// Response DTO for office information
+/// Returned by GET /api/offices/{id} and GET /api/offices endpoints
 /// </summary>
 [DisplayName("Office")]
-public record Office
+public record OfficeResponse
 {
     /// <summary>
     /// Unique identifier for the office

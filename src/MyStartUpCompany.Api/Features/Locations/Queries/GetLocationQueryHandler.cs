@@ -17,7 +17,7 @@ public interface IGetLocationQueryHandler
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The location if found</returns>
     /// <exception cref="EntityNotFoundException">Thrown if location is not found</exception>
-    Task<Location> HandleAsync(int id, CancellationToken cancellationToken = default);
+    Task<LocationResponse> HandleAsync(int id, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -37,14 +37,14 @@ public class GetLocationQueryHandler : IGetLocationQueryHandler
     }
 
     /// <inheritdoc/>
-    public async Task<Location> HandleAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<LocationResponse> HandleAsync(int id, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving location with ID: {LocationId}", id);
 
         var location = await _dbContext.Locations
             .AsNoTracking()
             .Where(l => l.Id == id)
-            .Select(l => new Location
+            .Select(l => new LocationResponse
             {
                 Id = l.Id,
                 CompanyId = l.CompanyId,
@@ -67,7 +67,7 @@ public class GetLocationQueryHandler : IGetLocationQueryHandler
         if (location == null)
         {
             _logger.LogWarning("Location not found with ID: {LocationId}", id);
-            throw new NotFoundException(nameof(Location), id);
+            throw new NotFoundException("Location", id);
         }
 
         _logger.LogInformation("Successfully retrieved location: {LocationName} (ID: {LocationId})",

@@ -36,7 +36,7 @@ public class CompanyControllerTests
     {
         // Arrange
         var companyId = 1;
-        var expectedCompany = new Company
+        var expectedCompany = new CompanyResponse
         {
             Id = companyId,
             Name = "Test Company",
@@ -100,7 +100,7 @@ public class CompanyControllerTests
     public async Task GetAllCompanies_ReturnsOkResultWithCompanies()
     {
         // Arrange
-        var expectedCompanies = new List<Company>
+        var expectedCompanies = new List<CompanyResponse>
         {
             new() { Id = 1, Name = "Company 1", Address = "Address 1", City = "City 1", PostalCode = "12345", Country = "Country 1", Phone = "+1-555-1111" },
             new() { Id = 2, Name = "Company 2", Address = "Address 2", City = "City 2", PostalCode = "67890", Country = "Country 2", Phone = "+1-555-2222" }
@@ -129,7 +129,7 @@ public class CompanyControllerTests
         // Arrange
         _getAllCompaniesHandlerMock
             .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Company>());
+            .ReturnsAsync(new List<CompanyResponse>());
 
         // Act
         var result = await _controller.GetAllCompanies(CancellationToken.None);
@@ -137,7 +137,7 @@ public class CompanyControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
-        var companies = okResult!.Value as IEnumerable<Company>;
+        var companies = okResult!.Value as IEnumerable<CompanyResponse>;
         companies.Should().BeEmpty();
     }
 }

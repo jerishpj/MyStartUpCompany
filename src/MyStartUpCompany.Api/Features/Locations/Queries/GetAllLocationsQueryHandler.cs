@@ -14,7 +14,7 @@ public interface IGetAllLocationsQueryHandler
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection of all locations</returns>
-    Task<IEnumerable<Location>> HandleAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<LocationResponse>> HandleAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -34,14 +34,14 @@ public class GetAllLocationsQueryHandler : IGetAllLocationsQueryHandler
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<Location>> HandleAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LocationResponse>> HandleAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving all locations");
 
         var locations = await _dbContext.Locations
             .AsNoTracking()
             .OrderBy(l => l.Name)
-            .Select(l => new Location
+            .Select(l => new LocationResponse
             {
                 Id = l.Id,
                 CompanyId = l.CompanyId,

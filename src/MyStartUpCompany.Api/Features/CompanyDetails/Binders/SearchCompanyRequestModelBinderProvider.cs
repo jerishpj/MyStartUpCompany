@@ -4,15 +4,15 @@ using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Binders;
 
 /// <summary>
-/// Provider that registers the CompanyRequestModelBinder for automatic use.
+/// Provider that registers the SearchCompanyRequestModelBinder for automatic use.
 /// </summary>
-public class CompanyRequestModelBinderProvider : IModelBinderProvider
+public class SearchCompanyRequestModelBinderProvider : IModelBinderProvider
 {
     public IModelBinder? GetBinder(ModelBinderProviderContext context)
     {
-        if (context.Metadata.ModelType == typeof(CompanyRequest))
+        if (context.Metadata.ModelType == typeof(SearchCompanyRequest))
         {
-            return new CompanyRequestModelBinder();
+            return new SearchCompanyRequestModelBinder();
         }
 
         return null;

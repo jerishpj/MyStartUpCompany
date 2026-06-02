@@ -40,7 +40,7 @@ public class CompanyController : ControllerBase
     /// <response code="404">If the company is not found</response>
     /// <response code="400">If the id is invalid</response>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(Company), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CompanyResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetCompany(
@@ -61,7 +61,7 @@ public class CompanyController : ControllerBase
     /// <returns>A list of all companies</returns>
     /// <response code="200">Returns the list of companies</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Company>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CompanyResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllCompanies(
         CancellationToken cancellationToken)
     {
@@ -81,10 +81,10 @@ public class CompanyController : ControllerBase
     /// <response code="200">Returns the paginated list of companies</response>
     /// <response code="400">If the request parameters are invalid</response>
     [HttpGet("search")]
-    [ProducesResponseType(typeof(PagedResult<Company>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<CompanyResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetFilteredCompanies(
-        [FromQuery] CompanyRequest request,
+        [FromQuery] SearchCompanyRequest request,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("GET request received for filtered companies");

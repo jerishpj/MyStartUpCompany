@@ -40,7 +40,7 @@ public class LocationsController : ControllerBase
     /// <response code="404">If the location is not found</response>
     /// <response code="400">If the id is invalid</response>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(Location), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LocationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLocation(
@@ -61,7 +61,7 @@ public class LocationsController : ControllerBase
     /// <returns>A list of all locations</returns>
     /// <response code="200">Returns the list of locations</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Location>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<LocationResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllLocations(
         CancellationToken cancellationToken)
     {
@@ -81,10 +81,10 @@ public class LocationsController : ControllerBase
     /// <response code="200">Returns the paginated list of locations</response>
     /// <response code="400">If the request parameters are invalid</response>
     [HttpGet("search")]
-    [ProducesResponseType(typeof(PagedResult<Location>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<LocationResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetFilteredLocations(
-        [FromQuery] LocationRequest request,
+        [FromQuery] SearchLocationRequest request,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(

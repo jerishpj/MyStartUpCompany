@@ -5,7 +5,7 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 
 public interface IGetFilteredCompaniesQueryHandler
 {
-    Task<PagedResult<Company>> HandleAsync(
-        CompanyRequest request,
+    Task<PagedResult<CompanyResponse>> HandleAsync(
+        SearchCompanyRequest request,
         CancellationToken cancellationToken = default);
 }

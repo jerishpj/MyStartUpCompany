@@ -3,10 +3,11 @@ using System.ComponentModel;
 namespace MyStartUpCompany.Api.Features.Buildings.Models;
 
 /// <summary>
-/// Represents a building within a location
+/// Response DTO for building information
+/// Returned by GET /api/buildings/{id} and GET /api/buildings endpoints
 /// </summary>
 [DisplayName("Building")]
-public record Building
+public record BuildingResponse
 {
     /// <summary>
     /// Unique identifier for the building

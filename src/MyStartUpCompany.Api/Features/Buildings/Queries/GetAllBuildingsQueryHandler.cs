@@ -14,7 +14,7 @@ public interface IGetAllBuildingsQueryHandler
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection of all buildings</returns>
-    Task<IEnumerable<Building>> HandleAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<BuildingResponse>> HandleAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -34,14 +34,14 @@ public class GetAllBuildingsQueryHandler : IGetAllBuildingsQueryHandler
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<Building>> HandleAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BuildingResponse>> HandleAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving all buildings");
 
         var buildings = await _dbContext.Buildings
             .AsNoTracking()
             .OrderBy(b => b.Name)
-            .Select(b => new Building
+            .Select(b => new BuildingResponse
             {
                 Id = b.Id,
                 LocationId = b.LocationId,

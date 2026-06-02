@@ -3,10 +3,11 @@ using System.ComponentModel;
 namespace MyStartUpCompany.Api.Features.Locations.Models;
 
 /// <summary>
-/// Represents a location/branch of a company
+/// Response DTO for location/branch information
+/// Returned by GET /api/locations/{id} and GET /api/locations endpoints
 /// </summary>
 [DisplayName("Location")]
-public record Location
+public record LocationResponse
 {
     /// <summary>
     /// Unique identifier for the location

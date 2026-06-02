@@ -27,7 +27,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.PageNumber.Should().Be(1);
@@ -58,7 +58,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.PageNumber.Should().Be(2);
@@ -93,7 +93,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.PageSize.Should().Be(pageSize);
@@ -119,7 +119,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?pageNumber=2&pageSize=10");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.TotalCount.Should().Be(35);
@@ -147,7 +147,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?pageNumber=3&pageSize=10");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(5);
@@ -166,7 +166,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
@@ -203,7 +203,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
@@ -236,7 +236,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?country=United&pageSize=50");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
@@ -254,7 +254,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
@@ -294,7 +294,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
@@ -312,7 +312,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
@@ -351,7 +351,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
@@ -383,7 +383,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?city=San&pageSize=50");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
@@ -401,7 +401,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
@@ -440,7 +440,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
@@ -458,7 +458,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
@@ -480,7 +480,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
@@ -509,7 +509,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(1);
@@ -537,7 +537,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?searchTerm=Tech&pageSize=20");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
@@ -554,7 +554,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
     }
@@ -570,8 +570,8 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var responseUpper = await Client.GetAsync("/api/company/search?searchTerm=ACME&pageSize=20");
 
         // Assert
-        var resultLower = await responseLower.ReadAsJsonAsync<PagedResult<Company>>();
-        var resultUpper = await responseUpper.ReadAsJsonAsync<PagedResult<Company>>();
+        var resultLower = await responseLower.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
+        var resultUpper = await responseUpper.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         resultLower.Should().NotBeNull();
         resultUpper.Should().NotBeNull();
@@ -614,7 +614,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
             "/api/company/search?country=United%20States&region=CA&city=San%20Francisco&pageSize=10");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(1);
@@ -633,7 +633,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
     }
@@ -649,7 +649,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
             "/api/company/search?country=United%20States&city=NonExistentCity&pageSize=10");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
@@ -682,7 +682,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
             "/api/company/search?country=United%20States&searchTerm=Tech&pageSize=10");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(1);
@@ -709,7 +709,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?pageSize=50");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().BeInAscendingOrder(c => c.Name);
@@ -735,8 +735,8 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var page2Response = await Client.GetAsync("/api/company/search?pageNumber=2&pageSize=5");
 
         // Assert
-        var page1Result = await page1Response.ReadAsJsonAsync<PagedResult<Api.Features.CompanyDetails.Models.Company>>();
-        var page2Result = await page2Response.ReadAsJsonAsync<PagedResult<Api.Features.CompanyDetails.Models.Company>>();
+        var page1Result = await page1Response.ReadAsJsonAsync<PagedResult<Api.Features.CompanyDetails.Models.CompanyResponse>>();
+        var page2Result = await page2Response.ReadAsJsonAsync<PagedResult<Api.Features.CompanyDetails.Models.CompanyResponse>>();
 
         var lastItemPage1 = page1Result!.Items.Last();
         var firstItemPage2 = page2Result!.Items.First();
@@ -760,7 +760,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Api.Features.CompanyDetails.Models.Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<Api.Features.CompanyDetails.Models.CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
@@ -779,7 +779,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
@@ -801,7 +801,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().NotBeNull();
@@ -820,7 +820,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?pageSize=1");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         if (result!.Items.Any())
@@ -857,7 +857,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
@@ -886,7 +886,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?pageSize=100");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(15);
@@ -903,7 +903,7 @@ public class CompanyFilteredApiIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync("/api/company/search?pageSize=1");
 
         // Assert
-        var result = await response.ReadAsJsonAsync<PagedResult<Company>>();
+        var result = await response.ReadAsJsonAsync<PagedResult<CompanyResponse>>();
 
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(1);

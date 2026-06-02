@@ -18,7 +18,7 @@ public class GetCompanyQueryHandler : IGetCompanyQueryHandler
         _logger = logger;
     }
 
-    public async Task<Models.Company> HandleAsync(int companyId, CancellationToken cancellationToken = default)
+    public async Task<Models.CompanyResponse> HandleAsync(int companyId, CancellationToken cancellationToken = default)
     {
         if (companyId <= 0)
         {
@@ -40,9 +40,9 @@ public class GetCompanyQueryHandler : IGetCompanyQueryHandler
         return MapToDto(company);
     }
 
-    private static Models.Company MapToDto(Persistence.Entities.Company company)
+    private static Models.CompanyResponse MapToDto(Persistence.Entities.Company company)
     {
-        return new Models.Company
+        return new Models.CompanyResponse
         {
             Id = company.Id,
             Name = company.Name,

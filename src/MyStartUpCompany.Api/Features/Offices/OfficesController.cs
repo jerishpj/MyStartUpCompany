@@ -40,7 +40,7 @@ public class OfficesController : ControllerBase
     /// <response code="404">If the office is not found</response>
     /// <response code="400">If the id is invalid</response>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(Office), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OfficeResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetOffice(
@@ -61,7 +61,7 @@ public class OfficesController : ControllerBase
     /// <returns>A list of all offices</returns>
     /// <response code="200">Returns the list of offices</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Office>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<OfficeResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllOffices(
         CancellationToken cancellationToken)
     {
@@ -81,10 +81,10 @@ public class OfficesController : ControllerBase
     /// <response code="200">Returns the paginated list of offices</response>
     /// <response code="400">If the request parameters are invalid</response>
     [HttpGet("search")]
-    [ProducesResponseType(typeof(PagedResult<Office>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<OfficeResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetFilteredOffices(
-        [FromQuery] OfficeRequest request,
+        [FromQuery] SearchOfficeRequest request,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(

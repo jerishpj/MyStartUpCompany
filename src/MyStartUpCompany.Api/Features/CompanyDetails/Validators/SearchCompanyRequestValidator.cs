@@ -4,10 +4,10 @@ using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Validators;
 
 /// <summary>
-/// Validator for CompanyRequest search and filter parameters.
+/// Validator for SearchCompanyRequest search and filter parameters.
 /// Ensures pagination parameters are within valid ranges and search fields are properly formatted.
 /// </summary>
-public class CompanyRequestValidator : AbstractValidator<CompanyRequest>
+public class SearchCompanyRequestValidator : AbstractValidator<SearchCompanyRequest>
 {
     /// <summary>
     /// Pagination and search field constraints.
@@ -18,7 +18,7 @@ public class CompanyRequestValidator : AbstractValidator<CompanyRequest>
     private const int MaxPageSize = 100;
     private const int MaxStringLength = 100;
 
-    public CompanyRequestValidator()
+    public SearchCompanyRequestValidator()
     {
         // Page Number validation
         RuleFor(x => x.PageNumber)

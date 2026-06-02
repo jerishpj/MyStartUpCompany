@@ -6,13 +6,13 @@ using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
 
 namespace MyStartUpCompany.Api.Tests.Features.CompanyDetails.Validators;
 
-public class CompanyRequestValidatorTests
+public class SearchCompanyRequestValidatorTests
 {
-    private readonly CompanyRequestValidator _validator;
+    private readonly SearchCompanyRequestValidator _validator;
 
-    public CompanyRequestValidatorTests()
+    public SearchCompanyRequestValidatorTests()
     {
-        _validator = new CompanyRequestValidator();
+        _validator = new SearchCompanyRequestValidator();
     }
 
     #region PageNumber Validation Tests
@@ -21,7 +21,7 @@ public class CompanyRequestValidatorTests
     public void PageNumber_WithValidNumber_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -34,7 +34,7 @@ public class CompanyRequestValidatorTests
     public void PageNumber_WithMinimumValue_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -47,7 +47,7 @@ public class CompanyRequestValidatorTests
     public void PageNumber_WithMaximumValue_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 10000, PageSize = 10 };
+        var request = new SearchCompanyRequest { PageNumber = 10000, PageSize = 10 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -63,7 +63,7 @@ public class CompanyRequestValidatorTests
     public void PageNumber_WithLessThanMinimum_ShouldFail(int pageNumber)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = pageNumber, PageSize = 10 };
+        var request = new SearchCompanyRequest { PageNumber = pageNumber, PageSize = 10 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -79,7 +79,7 @@ public class CompanyRequestValidatorTests
     public void PageNumber_WithGreaterThanMaximum_ShouldFail(int pageNumber)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = pageNumber, PageSize = 10 };
+        var request = new SearchCompanyRequest { PageNumber = pageNumber, PageSize = 10 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -97,7 +97,7 @@ public class CompanyRequestValidatorTests
     public void PageSize_WithValidSize_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 50 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 50 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -110,7 +110,7 @@ public class CompanyRequestValidatorTests
     public void PageSize_WithMinimumValue_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 1 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 1 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -123,7 +123,7 @@ public class CompanyRequestValidatorTests
     public void PageSize_WithMaximumValue_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 100 };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 100 };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -139,7 +139,7 @@ public class CompanyRequestValidatorTests
     public void PageSize_WithLessThanMinimum_ShouldFail(int pageSize)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = pageSize };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = pageSize };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -155,7 +155,7 @@ public class CompanyRequestValidatorTests
     public void PageSize_WithGreaterThanMaximum_ShouldFail(int pageSize)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = pageSize };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = pageSize };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -173,7 +173,7 @@ public class CompanyRequestValidatorTests
     public void Region_WithNull_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = null };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = null };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -186,7 +186,7 @@ public class CompanyRequestValidatorTests
     public void Region_WithEmpty_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = "" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = "" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -199,7 +199,7 @@ public class CompanyRequestValidatorTests
     public void Region_WithWhitespace_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = "   " };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = "   " };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -212,7 +212,7 @@ public class CompanyRequestValidatorTests
     public void Region_WithValidAlphabetic_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = "California" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = "California" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -225,7 +225,7 @@ public class CompanyRequestValidatorTests
     public void Region_WithValidAlphabeticWithSpaces_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = "New York" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = "New York" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -238,7 +238,7 @@ public class CompanyRequestValidatorTests
     public void Region_WithValidAlphabeticWithHyphens_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = "South-Dakota" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = "South-Dakota" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -254,7 +254,7 @@ public class CompanyRequestValidatorTests
     public void Region_WithInvalidCharacters_ShouldFail(string region)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = region };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = region };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -269,7 +269,7 @@ public class CompanyRequestValidatorTests
     {
         // Arrange
         var region = new string('A', 101);
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = region };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = region };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -284,7 +284,7 @@ public class CompanyRequestValidatorTests
     {
         // Arrange
         var region = new string('A', 100);
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Region = region };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Region = region };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -301,7 +301,7 @@ public class CompanyRequestValidatorTests
     public void Country_WithNull_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Country = null };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Country = null };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -314,7 +314,7 @@ public class CompanyRequestValidatorTests
     public void Country_WithValidAlphabetic_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Country = "United States" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Country = "United States" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -329,7 +329,7 @@ public class CompanyRequestValidatorTests
     public void Country_WithInvalidCharacters_ShouldFail(string country)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Country = country };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Country = country };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -344,7 +344,7 @@ public class CompanyRequestValidatorTests
     {
         // Arrange
         var country = new string('A', 101);
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, Country = country };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, Country = country };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -362,7 +362,7 @@ public class CompanyRequestValidatorTests
     public void City_WithNull_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, City = null };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, City = null };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -375,7 +375,7 @@ public class CompanyRequestValidatorTests
     public void City_WithValidAlphabetic_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, City = "San Francisco" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, City = "San Francisco" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -390,7 +390,7 @@ public class CompanyRequestValidatorTests
     public void City_WithInvalidCharacters_ShouldFail(string city)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, City = city };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, City = city };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -405,7 +405,7 @@ public class CompanyRequestValidatorTests
     {
         // Arrange
         var city = new string('A', 101);
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, City = city };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, City = city };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -423,7 +423,7 @@ public class CompanyRequestValidatorTests
     public void PostalCode_WithNull_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = null };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = null };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -436,7 +436,7 @@ public class CompanyRequestValidatorTests
     public void PostalCode_WithValidNumeric_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = "12345" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = "12345" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -449,7 +449,7 @@ public class CompanyRequestValidatorTests
     public void PostalCode_WithValidAlphanumeric_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = "M5V 3A8" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = "M5V 3A8" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -462,7 +462,7 @@ public class CompanyRequestValidatorTests
     public void PostalCode_WithValidAlphanumericWithHyphens_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = "12345-6789" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = "12345-6789" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -477,7 +477,7 @@ public class CompanyRequestValidatorTests
     public void PostalCode_WithInvalidCharacters_ShouldFail(string postalCode)
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = postalCode };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = postalCode };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -492,7 +492,7 @@ public class CompanyRequestValidatorTests
     {
         // Arrange
         var postalCode = new string('A', 21);
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = postalCode };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, PostalCode = postalCode };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -510,7 +510,7 @@ public class CompanyRequestValidatorTests
     public void SearchTerm_WithNull_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = null };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = null };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -523,7 +523,7 @@ public class CompanyRequestValidatorTests
     public void SearchTerm_WithValidText_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = "Tech Company" };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = "Tech Company" };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -537,7 +537,7 @@ public class CompanyRequestValidatorTests
     {
         // Arrange
         var searchTerm = new string('A', 100);
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = searchTerm };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = searchTerm };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -551,7 +551,7 @@ public class CompanyRequestValidatorTests
     {
         // Arrange
         var searchTerm = new string('A', 101);
-        var request = new CompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = searchTerm };
+        var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = searchTerm };
 
         // Act
         var result = _validator.TestValidate(request);
@@ -569,7 +569,7 @@ public class CompanyRequestValidatorTests
     public void ValidRequest_WithAllFieldsValid_ShouldPass()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = 1,
             PageSize = 10,
@@ -591,7 +591,7 @@ public class CompanyRequestValidatorTests
     public void InvalidRequest_WithMultipleErrors_ShouldFailForAllInvalidFields()
     {
         // Arrange
-        var request = new CompanyRequest
+        var request = new SearchCompanyRequest
         {
             PageNumber = -1,
             PageSize = 150,

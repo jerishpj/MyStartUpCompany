@@ -3,10 +3,11 @@ using System.ComponentModel;
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Models;
 
 /// <summary>
-/// Filter and pagination parameters for company search
+/// Search/filter and pagination parameters for company queries
+/// Accepted by GET /api/companies/search endpoint
 /// </summary>
-[DisplayName("CompanyRequest")]
-public record CompanyRequest
+[DisplayName("CompanySearch")]
+public record SearchCompanyRequest
 {
     /// <summary>
     /// Filter by region

@@ -18,8 +18,8 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
         _logger = logger;
     }
 
-    public async Task<PagedResult<Company>> HandleAsync(
-        CompanyRequest request,
+    public async Task<PagedResult<CompanyResponse>> HandleAsync(
+        SearchCompanyRequest request,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
@@ -40,7 +40,7 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
             .ThenBy(c => c.Id) // Stable sort for consistent pagination
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(c => new Company
+            .Select(c => new CompanyResponse
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -59,7 +59,7 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
             companies.Count, totalCount, request.PageNumber,
             (int)Math.Ceiling(totalCount / (double)request.PageSize));
 
-        return new PagedResult<Company>
+        return new PagedResult<CompanyResponse>
         {
             Items = companies,
             PageNumber = request.PageNumber,
@@ -68,7 +68,7 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
         };
     }
 
-    private IQueryable<Persistence.Entities.Company> BuildQuery(CompanyRequest request)
+    private IQueryable<Persistence.Entities.Company> BuildQuery(SearchCompanyRequest request)
     {
         var query = _dbContext.Companies.AsNoTracking();
 

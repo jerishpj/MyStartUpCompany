@@ -40,7 +40,7 @@ public class BuildingsController : ControllerBase
     /// <response code="404">If the building is not found</response>
     /// <response code="400">If the id is invalid</response>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(Building), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BuildingResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetBuilding(
@@ -61,7 +61,7 @@ public class BuildingsController : ControllerBase
     /// <returns>A list of all buildings</returns>
     /// <response code="200">Returns the list of buildings</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Building>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<BuildingResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllBuildings(
         CancellationToken cancellationToken)
     {
@@ -81,10 +81,10 @@ public class BuildingsController : ControllerBase
     /// <response code="200">Returns the paginated list of buildings</response>
     /// <response code="400">If the request parameters are invalid</response>
     [HttpGet("search")]
-    [ProducesResponseType(typeof(PagedResult<Building>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<BuildingResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetFilteredBuildings(
-        [FromQuery] BuildingRequest request,
+        [FromQuery] SearchBuildingRequest request,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
