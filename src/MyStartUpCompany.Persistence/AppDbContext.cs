@@ -10,6 +10,9 @@ namespace MyStartUpCompany.Persistence
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectTypeReference> ProjectTypeReferences { get; set; }
+        public DbSet<Location> Locations { get; set; }
+        public DbSet<Building> Buildings { get; set; }
+        public DbSet<Office> Offices { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {

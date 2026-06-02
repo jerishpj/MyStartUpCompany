@@ -1,10 +1,13 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Features.Buildings.Queries;
 using MyStartUpCompany.Api.Features.CompanyDetails.Binders;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
+using MyStartUpCompany.Api.Features.Locations.Queries;
+using MyStartUpCompany.Api.Features.Offices.Queries;
 using MyStartUpCompany.Api.Features.Projects.Queries;
 using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Api.Shared.Filters;
@@ -51,6 +54,21 @@ public partial class Program
         builder.Services.AddScoped<IGetCompanyQueryHandler, GetCompanyQueryHandler>();
         builder.Services.AddScoped<IGetAllCompaniesQueryHandler, GetAllCompaniesQueryHandler>();
         builder.Services.AddScoped<IGetFilteredCompaniesQueryHandler, GetFilteredCompaniesQueryHandler>();
+
+        // Register location query handlers
+        builder.Services.AddScoped<IGetLocationQueryHandler, GetLocationQueryHandler>();
+        builder.Services.AddScoped<IGetAllLocationsQueryHandler, GetAllLocationsQueryHandler>();
+        builder.Services.AddScoped<IGetFilteredLocationsQueryHandler, GetFilteredLocationsQueryHandler>();
+
+        // Register building query handlers
+        builder.Services.AddScoped<IGetBuildingQueryHandler, GetBuildingQueryHandler>();
+        builder.Services.AddScoped<IGetAllBuildingsQueryHandler, GetAllBuildingsQueryHandler>();
+        builder.Services.AddScoped<IGetFilteredBuildingsQueryHandler, GetFilteredBuildingsQueryHandler>();
+
+        // Register office query handlers
+        builder.Services.AddScoped<IGetOfficeQueryHandler, GetOfficeQueryHandler>();
+        builder.Services.AddScoped<IGetAllOfficesQueryHandler, GetAllOfficesQueryHandler>();
+        builder.Services.AddScoped<IGetFilteredOfficesQueryHandler, GetFilteredOfficesQueryHandler>();
 
         // Register project query handlers
         builder.Services.AddScoped<IGetProjectQueryHandler, GetProjectQueryHandler>();
