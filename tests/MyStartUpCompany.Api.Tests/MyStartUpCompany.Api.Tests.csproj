@@ -26,4 +26,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Admin\Queries\" />
+    <Folder Include="Features\Offices\Queries\" />
+    <Folder Include="Integration\Features\Offices\" />
+  </ItemGroup>
+
 </Project>

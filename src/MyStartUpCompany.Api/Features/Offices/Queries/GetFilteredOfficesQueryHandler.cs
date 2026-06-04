@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.Offices.Models;
 using MyStartUpCompany.Api.Shared.Models;
@@ -42,12 +43,16 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
     {
         _logger.LogInformation(
             "Retrieving filtered offices. SearchTerm: {SearchTerm}, BuildingId: {BuildingId}, " +
+            "BuildingName: {BuildingName}, LocationCity: {LocationCity}, LocationCountry: {LocationCountry}, " +
             "Department: {Department}, PageNumber: {PageNumber}, PageSize: {PageSize}",
-            request.SearchTerm, request.BuildingId, request.Department, request.PageNumber, request.PageSize);
+            request.SearchTerm, request.BuildingId, request.BuildingName, request.LocationCity, 
+            request.LocationCountry, request.Department, request.PageNumber, request.PageSize);
 
         var query = _dbContext.Offices.AsNoTracking();
 
-        // Apply filters
+        // ========== OFFICE-LEVEL FILTERS ==========
+
+        // Search term filter (office name or description)
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchTerm = request.SearchTerm.ToLower();
@@ -56,24 +61,64 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
                 (o.Description != null && o.Description.ToLower().Contains(searchTerm)));
         }
 
+        // Filter by specific building ID (direct FK lookup - fastest)
         if (request.BuildingId.HasValue)
         {
             query = query.Where(o => o.BuildingId == request.BuildingId);
         }
 
+        // Filter by department
         if (!string.IsNullOrWhiteSpace(request.Department))
         {
             query = query.Where(o => o.Department.ToLower() == request.Department.ToLower());
         }
 
+        // Filter by office type
         if (!string.IsNullOrWhiteSpace(request.OfficeType))
         {
             query = query.Where(o => o.OfficeType.ToLower() == request.OfficeType.ToLower());
         }
 
+        // Filter by active status
         if (request.IsActive.HasValue)
         {
             query = query.Where(o => o.IsActive == request.IsActive);
+        }
+
+        // ========== DENORMALIZED FIELDS FILTERS (Performance-Optimized - No Joins) ==========
+        // These filters use composite indexes and do NOT require table joins
+
+        // Filter by building name (denormalized field)
+        // Uses IX_Office_BuildingName or composite indexes containing BuildingName
+        if (!string.IsNullOrWhiteSpace(request.BuildingName))
+        {
+            var buildingName = request.BuildingName.ToLower();
+            query = query.Where(o => 
+                o.BuildingName != null && o.BuildingName.ToLower().Contains(buildingName));
+        }
+
+        // Filter by location city (denormalized field)
+        // Uses IX_Office_Location_Geographic composite index
+        if (!string.IsNullOrWhiteSpace(request.LocationCity))
+        {
+            query = query.Where(o => 
+                o.LocationCity != null && o.LocationCity.ToLower() == request.LocationCity.ToLower());
+        }
+
+        // Filter by location region (denormalized field)
+        // Uses IX_Office_Location_Geographic composite index
+        if (!string.IsNullOrWhiteSpace(request.LocationRegion))
+        {
+            query = query.Where(o => 
+                o.LocationRegion != null && o.LocationRegion.ToLower() == request.LocationRegion.ToLower());
+        }
+
+        // Filter by location country (denormalized field)
+        // Uses IX_Office_Location_Geographic composite index
+        if (!string.IsNullOrWhiteSpace(request.LocationCountry))
+        {
+            query = query.Where(o => 
+                o.LocationCountry != null && o.LocationCountry.ToLower() == request.LocationCountry.ToLower());
         }
 
         // Get total count before pagination
@@ -103,6 +148,10 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
                 Manager = o.Manager,
                 Phone = o.Phone,
                 Email = o.Email,
+                BuildingName = o.BuildingName,
+                LocationCity = o.LocationCity,
+                LocationRegion = o.LocationRegion,
+                LocationCountry = o.LocationCountry,
                 IsActive = o.IsActive,
                 CreatedAt = o.CreatedAt,
                 UpdatedAt = o.UpdatedAt

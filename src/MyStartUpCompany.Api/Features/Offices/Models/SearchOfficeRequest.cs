@@ -35,6 +35,30 @@ public record SearchOfficeRequest
     public bool? IsActive { get; init; }
 
     /// <summary>
+    /// Filter by building name (denormalized field for fast search without joins).
+    /// Supports partial/wildcard matching.
+    /// </summary>
+    public string? BuildingName { get; init; }
+
+    /// <summary>
+    /// Filter by location city (denormalized field for geographic filtering).
+    /// Exact match search.
+    /// </summary>
+    public string? LocationCity { get; init; }
+
+    /// <summary>
+    /// Filter by location region/state (denormalized field for geographic filtering).
+    /// Exact match search.
+    /// </summary>
+    public string? LocationRegion { get; init; }
+
+    /// <summary>
+    /// Filter by location country (denormalized field for geographic filtering).
+    /// Exact match search.
+    /// </summary>
+    public string? LocationCountry { get; init; }
+
+    /// <summary>
     /// Page number (1-based). Defaults to 1 if not provided or invalid.
     /// </summary>
     public int PageNumber { get; init; } = 1;

@@ -93,6 +93,42 @@ public record OfficeResponse
     /// <example>sales@company.com</example>
     public string? Email { get; init; }
 
+    // ========== DENORMALIZED FIELDS FOR API TRANSPARENCY ==========
+    // These fields are maintained via database triggers for performance
+    // They reflect the related Building and Location data at the time of query
+
+    /// <summary>
+    /// Denormalized building name (from Building.Name).
+    /// Automatically kept in sync via database trigger.
+    /// Included for API response completeness without requiring join.
+    /// </summary>
+    /// <example>Building A</example>
+    public string? BuildingName { get; init; }
+
+    /// <summary>
+    /// Denormalized location city (from Location.City).
+    /// Automatically kept in sync via database trigger.
+    /// Useful for geographic filtering and display.
+    /// </summary>
+    /// <example>New York</example>
+    public string? LocationCity { get; init; }
+
+    /// <summary>
+    /// Denormalized location region/state (from Location.Region).
+    /// Automatically kept in sync via database trigger.
+    /// Useful for regional filtering and display.
+    /// </summary>
+    /// <example>New York</example>
+    public string? LocationRegion { get; init; }
+
+    /// <summary>
+    /// Denormalized location country (from Location.Country).
+    /// Automatically kept in sync via database trigger.
+    /// Useful for country-level filtering and display.
+    /// </summary>
+    /// <example>United States</example>
+    public string? LocationCountry { get; init; }
+
     /// <summary>
     /// Indicates if this office is operational
     /// </summary>

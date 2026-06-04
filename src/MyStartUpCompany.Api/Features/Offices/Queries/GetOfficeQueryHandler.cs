@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.Offices.Models;
 using MyStartUpCompany.Api.Shared.Exceptions;
@@ -60,6 +61,10 @@ public class GetOfficeQueryHandler : IGetOfficeQueryHandler
                 Manager = o.Manager,
                 Phone = o.Phone,
                 Email = o.Email,
+                BuildingName = o.BuildingName,
+                LocationCity = o.LocationCity,
+                LocationRegion = o.LocationRegion,
+                LocationCountry = o.LocationCountry,
                 IsActive = o.IsActive,
                 CreatedAt = o.CreatedAt,
                 UpdatedAt = o.UpdatedAt

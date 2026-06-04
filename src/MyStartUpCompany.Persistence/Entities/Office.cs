@@ -1,3 +1,5 @@
+using System;
+
 namespace MyStartUpCompany.Persistence.Entities
 {
     /// <summary>
@@ -75,6 +77,34 @@ namespace MyStartUpCompany.Persistence.Entities
         /// Contact email for this office
         /// </summary>
         public string? Email { get; set; }
+
+        // ========== DENORMALIZED FIELDS FOR PERFORMANCE ==========
+        // These fields are kept in sync via database triggers for fast search queries
+        // without requiring joins to Building and Location tables
+
+        /// <summary>
+        /// Denormalized building name (synced from Building.Name via trigger).
+        /// Used for fast building name searches without joins.
+        /// </summary>
+        public string? BuildingName { get; set; }
+
+        /// <summary>
+        /// Denormalized location city (synced from Location.City via trigger).
+        /// Used for fast location-based searches without joins.
+        /// </summary>
+        public string? LocationCity { get; set; }
+
+        /// <summary>
+        /// Denormalized location region/state (synced from Location.Region via trigger).
+        /// Used for location filtering and geographic searches.
+        /// </summary>
+        public string? LocationRegion { get; set; }
+
+        /// <summary>
+        /// Denormalized location country (synced from Location.Country via trigger).
+        /// Used for country-level filtering and geographic searches.
+        /// </summary>
+        public string? LocationCountry { get; set; }
 
         /// <summary>
         /// Indicates if this office is currently operational

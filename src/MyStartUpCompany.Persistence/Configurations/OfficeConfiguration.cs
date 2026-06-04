@@ -55,6 +55,19 @@ public class OfficeConfiguration : IEntityTypeConfiguration<Office>
         builder.Property(o => o.Email)
             .HasMaxLength(256);
 
+        // ========== DENORMALIZED COLUMN CONFIGURATIONS ==========
+        builder.Property(o => o.BuildingName)
+            .HasMaxLength(500);
+
+        builder.Property(o => o.LocationCity)
+            .HasMaxLength(200);
+
+        builder.Property(o => o.LocationRegion)
+            .HasMaxLength(100);
+
+        builder.Property(o => o.LocationCountry)
+            .HasMaxLength(200);
+
         builder.Property(o => o.IsActive)
             .HasDefaultValue(true);
 
@@ -102,5 +115,32 @@ public class OfficeConfiguration : IEntityTypeConfiguration<Office>
         // Search by name
         builder.HasIndex(o => o.Name)
             .HasDatabaseName("IX_Office_Name");
+
+        // ========== DENORMALIZATION PERFORMANCE INDEXES ==========
+        // These indexes are critical for fast search queries without joins
+
+        // Building name search (single table lookup instead of join)
+        builder.HasIndex(o => o.BuildingName)
+            .HasDatabaseName("IX_Office_BuildingName");
+
+        // Location geographic search (city, region, country filtering)
+        builder.HasIndex(o => new { o.LocationCountry, o.LocationRegion, o.LocationCity })
+            .HasDatabaseName("IX_Office_Location_Geographic");
+
+        // Combined: Active + Location for filtered searches
+        builder.HasIndex(o => new { o.IsActive, o.LocationCity, o.LocationCountry })
+            .HasDatabaseName("IX_Office_Active_Location_Geographic");
+
+        // Combined: Active + Building name for department searches with location filter
+        builder.HasIndex(o => new { o.IsActive, o.BuildingName, o.Department })
+            .HasDatabaseName("IX_Office_Active_Building_Department");
+
+        // Multi-field search: Building + Office Type + Active status
+        builder.HasIndex(o => new { o.BuildingName, o.OfficeType, o.IsActive })
+            .HasDatabaseName("IX_Office_Building_Type_Active");
+
+        // Location + Department combined search
+        builder.HasIndex(o => new { o.LocationCity, o.Department, o.IsActive })
+            .HasDatabaseName("IX_Office_Location_Department_Active");
     }
 }
