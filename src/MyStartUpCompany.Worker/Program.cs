@@ -5,6 +5,7 @@ using MyStartUpCompany.Worker;
 using MyStartUpCompany.Worker.Configuration;
 using MyStartUpCompany.Worker.Extensions;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
+using MyStartUpCompany.Worker.Handlers.AddLocationHierarchy;
 using MyStartUpCompany.Worker.Health;
 using MyStartUpCompany.Worker.Services;
 using OpenTelemetry.Logs;
@@ -100,8 +101,10 @@ builder.Services.AddHostedService<Worker>();
 
 // Register core services
 builder.Services.AddScoped<AddCompanyEventHandler>();
+builder.Services.AddScoped<AddLocationHierarchyEventHandler>();
 builder.Services.AddScoped<CompanyFileProcessorService>();
 builder.Services.AddScoped<CompanyMessageProcessor>();
+builder.Services.AddScoped<LocationHierarchyMessageProcessor>();
 
 // Register message mapping services (Strategy + Factory patterns for source-based mapping)
 builder.Services.AddMessageMappers();
