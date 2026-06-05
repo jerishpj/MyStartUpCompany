@@ -7,74 +7,103 @@ namespace MyStartUpCompany.Api.Features.Offices.Models;
 /// Accepted by GET /api/offices/search endpoint
 /// </summary>
 [DisplayName("OfficeSearch")]
-public record SearchOfficeRequest
+public record SearchOfficeRequest(
+    string? SearchTerm = null,
+    int? BuildingId = null,
+    string? Department = null,
+    string? OfficeType = null,
+    bool? IsActive = null,
+    string? BuildingName = null,
+    string? LocationCity = null,
+    string? LocationRegion = null,
+    string? LocationCountry = null,
+    int PageNumber = 1,
+    int PageSize = 10,
+    string? SortBy = "Name",
+    string? SortOrder = "asc")
 {
     /// <summary>
     /// Search term for office name or description
     /// </summary>
-    public string? SearchTerm { get; init; }
+    public string? SearchTerm { get; init; } = SearchTerm;
 
     /// <summary>
     /// Filter by building ID
     /// </summary>
-    public int? BuildingId { get; init; }
+    public int? BuildingId { get; init; } = BuildingId;
 
     /// <summary>
     /// Filter by department
     /// </summary>
-    public string? Department { get; init; }
+    public string? Department { get; init; } = Department;
 
     /// <summary>
     /// Filter by office type
     /// </summary>
-    public string? OfficeType { get; init; }
+    public string? OfficeType { get; init; } = OfficeType;
 
     /// <summary>
     /// Filter by active status
     /// </summary>
-    public bool? IsActive { get; init; }
+    public bool? IsActive { get; init; } = IsActive;
 
     /// <summary>
     /// Filter by building name (denormalized field for fast search without joins).
     /// Supports partial/wildcard matching.
     /// </summary>
-    public string? BuildingName { get; init; }
+    public string? BuildingName { get; init; } = BuildingName;
 
     /// <summary>
     /// Filter by location city (denormalized field for geographic filtering).
     /// Exact match search.
     /// </summary>
-    public string? LocationCity { get; init; }
+    public string? LocationCity { get; init; } = LocationCity;
 
     /// <summary>
     /// Filter by location region/state (denormalized field for geographic filtering).
     /// Exact match search.
     /// </summary>
-    public string? LocationRegion { get; init; }
+    public string? LocationRegion { get; init; } = LocationRegion;
 
     /// <summary>
     /// Filter by location country (denormalized field for geographic filtering).
     /// Exact match search.
     /// </summary>
-    public string? LocationCountry { get; init; }
+    public string? LocationCountry { get; init; } = LocationCountry;
 
     /// <summary>
     /// Page number (1-based). Defaults to 1 if not provided or invalid.
     /// </summary>
-    public int PageNumber { get; init; } = 1;
+    public int PageNumber { get; init; } = ValidatePageNumber(PageNumber);
 
     /// <summary>
     /// Number of items per page. Defaults to 10 if not provided or invalid.
     /// </summary>
-    public int PageSize { get; init; } = 10;
+    public int PageSize { get; init; } = ValidatePageSize(PageSize);
 
     /// <summary>
     /// Sort field
     /// </summary>
-    public string? SortBy { get; init; } = "Name";
+    public string? SortBy { get; init; } = SortBy;
 
     /// <summary>
     /// Sort order (asc/desc)
     /// </summary>
-    public string? SortOrder { get; init; } = "asc";
+    public string? SortOrder { get; init; } = SortOrder;
+
+    /// <summary>
+    /// Silently defaults PageNumber to 1 if the provided value is invalid or non-positive.
+    /// </summary>
+    private static int ValidatePageNumber(int pageNumber)
+    {
+        return pageNumber > 0 ? pageNumber : 1;
+    }
+
+    /// <summary>
+    /// Silently defaults PageSize to 10 if the provided value is invalid or non-positive.
+    /// </summary>
+    private static int ValidatePageSize(int pageSize)
+    {
+        return pageSize > 0 ? pageSize : 10;
+    }
 }

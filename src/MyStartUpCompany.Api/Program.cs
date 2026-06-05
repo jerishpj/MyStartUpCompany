@@ -1,18 +1,14 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Api.Features.Buildings.Queries;
-using MyStartUpCompany.Api.Features.CompanyDetails.Binders;
-using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
 using MyStartUpCompany.Api.Features.Locations.Queries;
 using MyStartUpCompany.Api.Features.Offices.Queries;
 using MyStartUpCompany.Api.Features.Projects.Queries;
+using MyStartUpCompany.Api.Features.Shared.ModelBinders;
 using MyStartUpCompany.Api.Shared.Exceptions;
 using MyStartUpCompany.Api.Shared.Filters;
 using MyStartUpCompany.Observability;
-using MyStartUpCompany.Persistence;
 using MyStartUpCompany.Persistence.Extensions;
 using Scalar.AspNetCore;
 
@@ -26,8 +22,8 @@ public partial class Program
         builder.Services.AddControllers(options =>
         {
             options.Filters.Add<FluentValidationFilter>();
-            // Register custom model binder for silent defaulting of pagination parameters
-            options.ModelBinderProviders.Insert(0, new SearchCompanyRequestModelBinderProvider());
+            // Register pagination model binder provider to handle empty/null values for PageNumber and PageSize
+            options.ModelBinderProviders.Insert(0, new PaginationModelBinderProvider());
         });
 
         // Add OpenTelemetry observability

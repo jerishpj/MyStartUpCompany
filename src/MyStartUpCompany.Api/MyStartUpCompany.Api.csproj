@@ -25,6 +25,10 @@
     <ProjectReference Include="..\MyStartUpCompany.Observability\MyStartUpCompany.Observability.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\CompanyDetails\Binders\" />
+  </ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

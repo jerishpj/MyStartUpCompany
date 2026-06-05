@@ -7,47 +7,55 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Models;
 /// Accepted by GET /api/companies/search endpoint
 /// </summary>
 [DisplayName("CompanySearch")]
-public record SearchCompanyRequest
+public record SearchCompanyRequest(
+    string? Region = null,
+    string? Country = null,
+    string? City = null,
+    string? PostalCode = null,
+    int PageNumber = 1,
+    int PageSize = 10,
+    string? SearchTerm = null)
 {
     /// <summary>
     /// Filter by region
     /// </summary>
     /// <example>CA</example>
-    public string? Region { get; init; }
+    public string? Region { get; init; } = Region;
 
     /// <summary>
     /// Filter by country
     /// </summary>
     /// <example>United States</example>
-    public string? Country { get; init; }
+    public string? Country { get; init; } = Country;
 
     /// <summary>
     /// Filter by city
     /// </summary>
     /// <example>San Francisco</example>
-    public string? City { get; init; }
+    public string? City { get; init; } = City;
 
     /// <summary>
     /// Filter by postal code
     /// </summary>
     /// <example>94105</example>
-    public string? PostalCode { get; init; }
+    public string? PostalCode { get; init; } = PostalCode;
 
     /// <summary>
-    /// Page number (1-based). Defaults to 1 if not provided or invalid.
+    /// Page number (1-based). Defaults to 1 if not provided, blank, or invalid.
     /// </summary>
     /// <example>1</example>
-    public int PageNumber { get; init; } = 1;
+    public int PageNumber { get; init; } = PageNumber;
 
     /// <summary>
-    /// Number of items per page. Defaults to 10 if not provided or invalid.
+    /// Number of items per page. Defaults to 10 if not provided, blank, or invalid.
     /// </summary>
     /// <example>10</example>
-    public int PageSize { get; init; } = 10;
+    public int PageSize { get; init; } = PageSize;
 
     /// <summary>
     /// Search term for name (optional)
     /// </summary>
     /// <example>Acme</example>
-    public string? SearchTerm { get; init; }
+    public string? SearchTerm { get; init; } = SearchTerm;
 }
+
