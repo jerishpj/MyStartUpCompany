@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.6.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="FluentAssertions" Version="8.10.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
@@ -28,7 +29,9 @@
 
   <ItemGroup>
     <Folder Include="Features\Admin\Queries\" />
+    <Folder Include="Features\Buildings\Mappings\" />
     <Folder Include="Features\Locations\Queries\" />
+    <Folder Include="Features\Offices\Mappings\" />
     <Folder Include="Features\Projects\Mappings\" />
     <Folder Include="Integration\Features\Offices\" />
   </ItemGroup>
