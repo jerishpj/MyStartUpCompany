@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Common.Utilities;
 using MyStartUpCompany.Api.Features.Locations.Models;
 using MyStartUpCompany.Api.Shared.Models;
 using MyStartUpCompany.Persistence;
@@ -90,15 +91,15 @@ public class GetFilteredLocationsQueryHandler : IGetFilteredLocationsQueryHandle
         // Country - exact match is more selective than substring search
         if (!string.IsNullOrWhiteSpace(request.Country))
         {
-            var country = request.Country.Trim();
-            query = query.Where(l => l.Country.ToLower() == country.ToLower());
+            var pattern = SqlLikeHelper.CreateExactPattern(request.Country);
+            query = query.Where(l => EF.Functions.Like(l.Country, pattern));
         }
 
         // City - exact match
         if (!string.IsNullOrWhiteSpace(request.City))
         {
-            var city = request.City.Trim();
-            query = query.Where(l => l.City.ToLower() == city.ToLower());
+            var pattern = SqlLikeHelper.CreateExactPattern(request.City);
+            query = query.Where(l => EF.Functions.Like(l.City, pattern));
         }
 
         // IsActive - boolean filter (fast)
@@ -110,10 +111,10 @@ public class GetFilteredLocationsQueryHandler : IGetFilteredLocationsQueryHandle
         // SearchTerm - least selective (substring search)
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var searchTerm = request.SearchTerm.Trim().ToLower();
+            var pattern = SqlLikeHelper.CreateLikePattern(request.SearchTerm);
             query = query.Where(l =>
-                l.Name.ToLower().Contains(searchTerm) ||
-                (l.Description != null && l.Description.ToLower().Contains(searchTerm)));
+                EF.Functions.Like(l.Name, pattern) ||
+                (l.Description != null && EF.Functions.Like(l.Description, pattern)));
         }
 
         return query;

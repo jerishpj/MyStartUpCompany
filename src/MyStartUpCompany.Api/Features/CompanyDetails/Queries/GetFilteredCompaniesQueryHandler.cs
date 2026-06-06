@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Common.Utilities;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Shared.Models;
 using MyStartUpCompany.Persistence;
@@ -75,47 +76,34 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
         // City - use EF.Functions.Like for better database-level optimization
         if (!string.IsNullOrWhiteSpace(request.City))
         {
-            var city = request.City.Trim();
-            query = query.Where(c => EF.Functions.Like(c.City, $"%{EscapeLikeParameter(city)}%"));
+            var pattern = SqlLikeHelper.CreateLikePattern(request.City);
+            query = query.Where(c => EF.Functions.Like(c.City, pattern));
         }
 
         // Region - use EF.Functions.Like
         if (!string.IsNullOrWhiteSpace(request.Region))
         {
-            var region = request.Region.Trim();
+            var pattern = SqlLikeHelper.CreateLikePattern(request.Region);
             query = query.Where(c => c.Region != null &&
-                EF.Functions.Like(c.Region, $"%{EscapeLikeParameter(region)}%"));
+                EF.Functions.Like(c.Region, pattern));
         }
 
         // Country - use EF.Functions.Like
         if (!string.IsNullOrWhiteSpace(request.Country))
         {
-            var country = request.Country.Trim();
-            query = query.Where(c => EF.Functions.Like(c.Country, $"%{EscapeLikeParameter(country)}%"));
+            var pattern = SqlLikeHelper.CreateLikePattern(request.Country);
+            query = query.Where(c => EF.Functions.Like(c.Country, pattern));
         }
 
         // Search term - least selective (substring search on multiple fields)
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var escapedTerm = EscapeLikeParameter(request.SearchTerm.Trim());
-            var searchPattern = $"%{escapedTerm}%";
+            var pattern = SqlLikeHelper.CreateLikePattern(request.SearchTerm);
             query = query.Where(c =>
-                EF.Functions.Like(c.Name, searchPattern) ||
-                (c.Description != null && EF.Functions.Like(c.Description, searchPattern)));
+                EF.Functions.Like(c.Name, pattern) ||
+                (c.Description != null && EF.Functions.Like(c.Description, pattern)));
         }
 
         return query;
-    }
-
-    /// <summary>
-    /// Escapes special characters in LIKE patterns to prevent SQL injection
-    /// and ensure correct pattern matching.
-    /// </summary>
-    private static string EscapeLikeParameter(string parameter)
-    {
-        return parameter
-            .Replace("[", "[[]")
-            .Replace("%", "[%]")
-            .Replace("_", "[_]");
     }
 }

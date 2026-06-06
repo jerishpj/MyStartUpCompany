@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Common.Utilities;
 using MyStartUpCompany.Api.Features.Buildings.Models;
 using MyStartUpCompany.Api.Shared.Models;
 using MyStartUpCompany.Persistence;
@@ -50,10 +51,10 @@ public class GetFilteredBuildingsQueryHandler : IGetFilteredBuildingsQueryHandle
         // Apply filters
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var searchTerm = request.SearchTerm.ToLower();
+            var pattern = SqlLikeHelper.CreateLikePattern(request.SearchTerm);
             query = query.Where(b =>
-                b.Name.ToLower().Contains(searchTerm) ||
-                (b.Description != null && b.Description.ToLower().Contains(searchTerm)));
+                EF.Functions.Like(b.Name, pattern) ||
+                (b.Description != null && EF.Functions.Like(b.Description, pattern)));
         }
 
         if (request.LocationId.HasValue)
@@ -63,7 +64,8 @@ public class GetFilteredBuildingsQueryHandler : IGetFilteredBuildingsQueryHandle
 
         if (!string.IsNullOrWhiteSpace(request.BuildingCode))
         {
-            query = query.Where(b => b.BuildingCode.ToLower() == request.BuildingCode.ToLower());
+            var pattern = SqlLikeHelper.CreateExactPattern(request.BuildingCode);
+            query = query.Where(b => EF.Functions.Like(b.BuildingCode, pattern));
         }
 
         if (request.IsActive.HasValue)

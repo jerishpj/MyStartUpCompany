@@ -1,5 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Common.Utilities;
 using MyStartUpCompany.Api.Features.Offices.Models;
 using MyStartUpCompany.Api.Shared.Models;
 using MyStartUpCompany.Persistence;
@@ -55,10 +56,10 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
         // Search term filter (office name or description)
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var searchTerm = request.SearchTerm.ToLower();
+            var pattern = SqlLikeHelper.CreateLikePattern(request.SearchTerm);
             query = query.Where(o =>
-                o.Name.ToLower().Contains(searchTerm) ||
-                (o.Description != null && o.Description.ToLower().Contains(searchTerm)));
+                EF.Functions.Like(o.Name, pattern) ||
+                (o.Description != null && EF.Functions.Like(o.Description, pattern)));
         }
 
         // Filter by specific building ID (direct FK lookup - fastest)
@@ -70,13 +71,15 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
         // Filter by department
         if (!string.IsNullOrWhiteSpace(request.Department))
         {
-            query = query.Where(o => o.Department.ToLower() == request.Department.ToLower());
+            var pattern = SqlLikeHelper.CreateExactPattern(request.Department);
+            query = query.Where(o => EF.Functions.Like(o.Department, pattern));
         }
 
         // Filter by office type
         if (!string.IsNullOrWhiteSpace(request.OfficeType))
         {
-            query = query.Where(o => o.OfficeType.ToLower() == request.OfficeType.ToLower());
+            var pattern = SqlLikeHelper.CreateExactPattern(request.OfficeType);
+            query = query.Where(o => EF.Functions.Like(o.OfficeType, pattern));
         }
 
         // Filter by active status
@@ -92,33 +95,36 @@ public class GetFilteredOfficesQueryHandler : IGetFilteredOfficesQueryHandler
         // Uses IX_Office_BuildingName or composite indexes containing BuildingName
         if (!string.IsNullOrWhiteSpace(request.BuildingName))
         {
-            var buildingName = request.BuildingName.ToLower();
+            var pattern = SqlLikeHelper.CreateLikePattern(request.BuildingName);
             query = query.Where(o => 
-                o.BuildingName != null && o.BuildingName.ToLower().Contains(buildingName));
+                o.BuildingName != null && EF.Functions.Like(o.BuildingName, pattern));
         }
 
         // Filter by location city (denormalized field)
         // Uses IX_Office_Location_Geographic composite index
         if (!string.IsNullOrWhiteSpace(request.LocationCity))
         {
+            var pattern = SqlLikeHelper.CreateExactPattern(request.LocationCity);
             query = query.Where(o => 
-                o.LocationCity != null && o.LocationCity.ToLower() == request.LocationCity.ToLower());
+                o.LocationCity != null && EF.Functions.Like(o.LocationCity, pattern));
         }
 
         // Filter by location region (denormalized field)
         // Uses IX_Office_Location_Geographic composite index
         if (!string.IsNullOrWhiteSpace(request.LocationRegion))
         {
+            var pattern = SqlLikeHelper.CreateExactPattern(request.LocationRegion);
             query = query.Where(o => 
-                o.LocationRegion != null && o.LocationRegion.ToLower() == request.LocationRegion.ToLower());
+                o.LocationRegion != null && EF.Functions.Like(o.LocationRegion, pattern));
         }
 
         // Filter by location country (denormalized field)
         // Uses IX_Office_Location_Geographic composite index
         if (!string.IsNullOrWhiteSpace(request.LocationCountry))
         {
+            var pattern = SqlLikeHelper.CreateExactPattern(request.LocationCountry);
             query = query.Where(o => 
-                o.LocationCountry != null && o.LocationCountry.ToLower() == request.LocationCountry.ToLower());
+                o.LocationCountry != null && EF.Functions.Like(o.LocationCountry, pattern));
         }
 
         // Get total count before pagination

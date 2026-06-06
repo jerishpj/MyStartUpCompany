@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MyStartUpCompany.Api.Common.Utilities;
 using MyStartUpCompany.Api.Features.Projects.Models;
 using MyStartUpCompany.Api.Shared.Models;
 using MyStartUpCompany.Observability;
@@ -100,7 +101,8 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
         // Filter by project identifier (unique index, most selective)
         if (!string.IsNullOrWhiteSpace(request.ProjectIdentifier))
         {
-            query = query.Where(p => p.ProjectIdentifier.Contains(request.ProjectIdentifier));
+            var pattern = SqlLikeHelper.CreateLikePattern(request.ProjectIdentifier);
+            query = query.Where(p => EF.Functions.Like(p.ProjectIdentifier, pattern));
         }
 
         // Filter by project type (indexed enum)
@@ -116,20 +118,22 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
         // Filter by code (indexed)
         if (!string.IsNullOrWhiteSpace(request.Code))
         {
-            query = query.Where(p => p.Code == request.Code);
+            var pattern = SqlLikeHelper.CreateExactPattern(request.Code);
+            query = query.Where(p => EF.Functions.Like(p.Code, pattern));
         }
 
         // Filter by location (indexed)
         if (!string.IsNullOrWhiteSpace(request.Location))
         {
-            query = query.Where(p => p.Location == request.Location);
+            var pattern = SqlLikeHelper.CreateExactPattern(request.Location);
+            query = query.Where(p => EF.Functions.Like(p.Location, pattern));
         }
 
         // Filter by name (substring search - indexed but less selective)
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
-            var searchTerm = request.Name.ToLower();
-            query = query.Where(p => p.Name.ToLower().Contains(searchTerm));
+            var pattern = SqlLikeHelper.CreateLikePattern(request.Name);
+            query = query.Where(p => EF.Functions.Like(p.Name, pattern));
         }
 
         return query;
