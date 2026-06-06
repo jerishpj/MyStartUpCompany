@@ -28,7 +28,8 @@
 
   <ItemGroup>
     <Folder Include="Features\Admin\Queries\" />
-    <Folder Include="Features\Offices\Queries\" />
+    <Folder Include="Features\Locations\Queries\" />
+    <Folder Include="Features\Projects\Mappings\" />
     <Folder Include="Integration\Features\Offices\" />
   </ItemGroup>
 

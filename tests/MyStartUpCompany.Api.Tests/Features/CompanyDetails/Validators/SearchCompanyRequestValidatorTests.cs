@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.TestHelper;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
+using MyStartUpCompany.Api.Shared.Constants;
 
 namespace MyStartUpCompany.Api.Tests.Features.CompanyDetails.Validators;
 
@@ -70,7 +71,7 @@ public class SearchCompanyRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.PageNumber)
-            .WithErrorMessage("Page number must be at least 1.");
+            .WithErrorMessage(ValidationConstants.Pagination.PageNumberErrorMessage);
     }
 
     [Theory]
@@ -86,7 +87,7 @@ public class SearchCompanyRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.PageNumber)
-            .WithErrorMessage("Page number cannot exceed 10000.");
+            .WithErrorMessage(ValidationConstants.Pagination.PageNumberErrorMessage);
     }
 
     #endregion
@@ -146,7 +147,7 @@ public class SearchCompanyRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.PageSize)
-            .WithErrorMessage("Page size must be at least 1.");
+            .WithErrorMessage(ValidationConstants.Pagination.PageSizeErrorMessage);
     }
 
     [Theory]
@@ -162,7 +163,7 @@ public class SearchCompanyRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.PageSize)
-            .WithErrorMessage("Page size cannot exceed 100.");
+            .WithErrorMessage(ValidationConstants.Pagination.PageSizeErrorMessage);
     }
 
     #endregion
@@ -550,7 +551,7 @@ public class SearchCompanyRequestValidatorTests
     public void SearchTerm_WithLengthExceeded_ShouldFail()
     {
         // Arrange
-        var searchTerm = new string('A', 101);
+        var searchTerm = new string('A', 501);
         var request = new SearchCompanyRequest { PageNumber = 1, PageSize = 10, SearchTerm = searchTerm };
 
         // Act
@@ -558,7 +559,7 @@ public class SearchCompanyRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.SearchTerm)
-            .WithErrorMessage("Search term cannot exceed 100 characters.");
+            .WithErrorMessage($"Search term cannot exceed {ValidationConstants.Search.MaxSearchTermLength} characters.");
     }
 
     #endregion
