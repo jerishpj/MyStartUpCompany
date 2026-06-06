@@ -41,23 +41,7 @@ public class GetAllBuildingsQueryHandler : IGetAllBuildingsQueryHandler
         var buildings = await _dbContext.Buildings
             .AsNoTracking()
             .OrderBy(b => b.Name)
-            .Select(b => new BuildingResponse
-            {
-                Id = b.Id,
-                LocationId = b.LocationId,
-                Name = b.Name,
-                BuildingCode = b.BuildingCode,
-                Description = b.Description,
-                Address = b.Address,
-                NumberOfFloors = b.NumberOfFloors,
-                YearConstructed = b.YearConstructed,
-                TotalFloorArea = b.TotalFloorArea,
-                ContactPerson = b.ContactPerson,
-                Phone = b.Phone,
-                IsActive = b.IsActive,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt
-            })
+            .ProjectToBuildingResponse()
             .ToListAsync(cancellationToken);
 
         _logger.LogInformation("Retrieved {BuildingCount} buildings", buildings.Count);

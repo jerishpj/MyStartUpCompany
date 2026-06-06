@@ -1,9 +1,12 @@
 using FluentValidation;
 using MyStartUpCompany.Api.Features.Buildings.Queries;
+using MyStartUpCompany.Api.Features.Buildings.Validators;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 using MyStartUpCompany.Api.Features.CompanyDetails.Validators;
 using MyStartUpCompany.Api.Features.Locations.Queries;
+using MyStartUpCompany.Api.Features.Locations.Validators;
 using MyStartUpCompany.Api.Features.Offices.Queries;
+using MyStartUpCompany.Api.Features.Offices.Validators;
 using MyStartUpCompany.Api.Features.Projects.Queries;
 using MyStartUpCompany.Api.Features.Shared.ModelBinders;
 using MyStartUpCompany.Api.Shared.Exceptions;
@@ -33,6 +36,10 @@ public partial class Program
 
         // Register FluentValidation validators
         builder.Services.AddValidatorsFromAssemblyContaining<SearchCompanyRequestValidator>();
+        builder.Services.AddScoped<SearchCompanyRequestValidator>();
+        builder.Services.AddScoped<SearchLocationRequestValidator>();
+        builder.Services.AddScoped<SearchBuildingRequestValidator>();
+        builder.Services.AddScoped<SearchOfficeRequestValidator>();
         builder.Services.AddScoped<FluentValidationFilter>();
 
         // Configure ProblemDetails with custom factory

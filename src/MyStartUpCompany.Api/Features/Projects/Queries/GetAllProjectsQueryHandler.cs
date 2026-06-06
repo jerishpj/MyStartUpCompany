@@ -34,24 +34,12 @@ public class GetAllProjectsQueryHandler : IGetAllProjectsQueryHandler
         {
             _logger.LogInformation("Retrieving all projects");
 
-            var projects = await _dbContext.Projects
+            // Project-to-response mapping is done at database level for optimal performance
+            var responses = await _dbContext.Projects
                 .AsNoTracking()
                 .OrderBy(p => p.Name)
+                .ProjectToProjectResponse()
                 .ToListAsync(cancellationToken);
-
-            var responses = projects.Select(p => new ProjectResponse
-            {
-                Id = p.Id,
-                ProjectIdentifier = p.ProjectIdentifier,
-                Name = p.Name,
-                Code = p.Code,
-                Location = p.Location,
-                CompanyId = p.CompanyId,
-                Type = p.Type.ToString(),
-                Details = MapProjectDetails(p.Details),
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt
-            }).ToList();
 
             stopwatch.Stop();
 
@@ -70,33 +58,5 @@ public class GetAllProjectsQueryHandler : IGetAllProjectsQueryHandler
             _logger.LogError(ex, "Error retrieving all projects");
             throw;
         }
-    }
-
-    /// <summary>
-    /// Maps ProjectDetails value object to ProjectDetailsDto
-    /// </summary>
-    private static ProjectDetailsDto MapProjectDetails(Persistence.Entities.ValueObjects.ProjectDetails details)
-    {
-        return new ProjectDetailsDto
-        {
-            Budget = details.Budget,
-            Status = details.Status,
-            StartDate = details.StartDate,
-            EndDate = details.EndDate,
-            Description = details.Description,
-            ProjectManager = details.ProjectManager,
-            TeamMembers = details.TeamMembers,
-            Priority = details.Priority,
-            Tags = details.Tags,
-            Metrics = details.Metrics,
-            Metadata = details.Metadata,
-            ProgressPercentage = details.ProgressPercentage,
-            Notes = details.Notes,
-            BudgetSpent = details.BudgetSpent,
-            Outcome = details.Outcome,
-            RiskLevel = details.RiskLevel,
-            Deliverables = details.Deliverables,
-            Dependencies = details.Dependencies
-        };
     }
 }

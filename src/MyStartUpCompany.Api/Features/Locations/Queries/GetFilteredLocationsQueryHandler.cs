@@ -40,75 +40,26 @@ public class GetFilteredLocationsQueryHandler : IGetFilteredLocationsQueryHandle
         SearchLocationRequest request,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            "Retrieving filtered locations. SearchTerm: {SearchTerm}, CompanyId: {CompanyId}, " +
-            "PageNumber: {PageNumber}, PageSize: {PageSize}",
-            request.SearchTerm, request.CompanyId, request.PageNumber, request.PageSize);
+        _logger.LogDebug(
+            "Retrieving filtered locations - CompanyId: {CompanyId}, PageNumber: {PageNumber}, PageSize: {PageSize}",
+            request.CompanyId, request.PageNumber, request.PageSize);
 
-        var query = _dbContext.Locations.AsNoTracking();
+        // Build optimized query with database-level filters
+        var query = BuildQuery(request);
 
-        // Apply filters
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-        {
-            var searchTerm = request.SearchTerm.ToLower();
-            query = query.Where(l =>
-                l.Name.ToLower().Contains(searchTerm) ||
-                (l.Description != null && l.Description.ToLower().Contains(searchTerm)));
-        }
-
-        if (request.CompanyId.HasValue)
-        {
-            query = query.Where(l => l.CompanyId == request.CompanyId);
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Country))
-        {
-            query = query.Where(l => l.Country.ToLower() == request.Country.ToLower());
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.City))
-        {
-            query = query.Where(l => l.City.ToLower() == request.City.ToLower());
-        }
-
-        if (request.IsActive.HasValue)
-        {
-            query = query.Where(l => l.IsActive == request.IsActive);
-        }
-
-        // Get total count before pagination
+        // Get total count
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Apply sorting
-        query = ApplySorting(query, request.SortBy, request.SortOrder);
-
-        // Apply pagination
-        var skipCount = (request.PageNumber - 1) * request.PageSize;
+        // Apply sorting and pagination, then project to DTO
         var locations = await query
-            .Skip(skipCount)
+            .ApplySorting(request.SortBy, request.SortOrder)
+            .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(l => new LocationResponse
-            {
-                Id = l.Id,
-                CompanyId = l.CompanyId,
-                Name = l.Name,
-                Description = l.Description,
-                Address = l.Address,
-                City = l.City,
-                Region = l.Region,
-                PostalCode = l.PostalCode,
-                Country = l.Country,
-                Phone = l.Phone,
-                Email = l.Email,
-                ManagerName = l.ManagerName,
-                IsActive = l.IsActive,
-                CreatedAt = l.CreatedAt,
-                UpdatedAt = l.UpdatedAt
-            })
+            .ProjectToLocationResponse()
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Retrieved {LocationCount} locations out of {TotalCount} matching criteria",
+        _logger.LogDebug(
+            "Retrieved {LocationCount} locations out of {TotalCount}",
             locations.Count, totalCount);
 
         return new PagedResult<LocationResponse>
@@ -120,14 +71,68 @@ public class GetFilteredLocationsQueryHandler : IGetFilteredLocationsQueryHandle
         };
     }
 
-    private IQueryable<Persistence.Entities.Location> ApplySorting(
-        IQueryable<Persistence.Entities.Location> query,
+    /// <summary>
+    /// Builds the optimized query with database-level filters.
+    /// Applies most selective filters first for better query optimization.
+    /// </summary>
+    private IQueryable<Persistence.Entities.Location> BuildQuery(SearchLocationRequest request)
+    {
+        var query = _dbContext.Locations.AsNoTracking();
+
+        // Apply filters in order of selectivity (most selective first)
+
+        // CompanyId - most selective (indexed foreign key)
+        if (request.CompanyId.HasValue)
+        {
+            query = query.Where(l => l.CompanyId == request.CompanyId);
+        }
+
+        // Country - exact match is more selective than substring search
+        if (!string.IsNullOrWhiteSpace(request.Country))
+        {
+            var country = request.Country.Trim();
+            query = query.Where(l => l.Country.ToLower() == country.ToLower());
+        }
+
+        // City - exact match
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            var city = request.City.Trim();
+            query = query.Where(l => l.City.ToLower() == city.ToLower());
+        }
+
+        // IsActive - boolean filter (fast)
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(l => l.IsActive == request.IsActive);
+        }
+
+        // SearchTerm - least selective (substring search)
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var searchTerm = request.SearchTerm.Trim().ToLower();
+            query = query.Where(l =>
+                l.Name.ToLower().Contains(searchTerm) ||
+                (l.Description != null && l.Description.ToLower().Contains(searchTerm)));
+        }
+
+        return query;
+    }
+}
+
+/// <summary>
+/// Extension methods for sorting locations queries.
+/// </summary>
+internal static class LocationSortingExtensions
+{
+    public static IQueryable<Persistence.Entities.Location> ApplySorting(
+        this IQueryable<Persistence.Entities.Location> query,
         string? sortBy,
         string? sortOrder)
     {
-        var isDescending = sortOrder?.ToLower() == "desc";
+        var isDescending = sortOrder?.Equals("desc", StringComparison.OrdinalIgnoreCase) ?? false;
 
-        return sortBy?.ToLower() switch
+        return (sortBy?.ToLower()) switch
         {
             "name" => isDescending ? query.OrderByDescending(l => l.Name) : query.OrderBy(l => l.Name),
             "city" => isDescending ? query.OrderByDescending(l => l.City) : query.OrderBy(l => l.City),

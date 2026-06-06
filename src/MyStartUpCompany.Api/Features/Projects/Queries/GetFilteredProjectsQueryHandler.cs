@@ -35,30 +35,22 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
 
         try
         {
-            _logger.LogInformation(
-                "Retrieving filtered projects - ProjectIdentifier: {ProjectIdentifier}, Name: {Name}, " +
-                "Code: {Code}, Location: {Location}, CompanyId: {CompanyId}, Type: {Type}, " +
-                "SortBy: {SortBy}, SortOrder: {SortOrder}, PageNumber: {PageNumber}, PageSize: {PageSize}",
-                request.ProjectIdentifier, request.Name, request.Code, request.Location, request.CompanyId, request.Type,
-                request.SortBy, request.SortOrder, request.PageNumber, request.PageSize);
+            _logger.LogDebug(
+                "Retrieving filtered projects - PageNumber: {PageNumber}, PageSize: {PageSize}",
+                request.PageNumber, request.PageSize);
 
-            // Build optimized query with database-level filters (searchable columns)
+            // Build optimized query with database-level filters
             var query = BuildQuery(request);
 
             // Get total count
             var totalCount = await query.CountAsync(cancellationToken);
 
-            // Apply sorting
-            var sortedQuery = ApplySorting(query, request.SortBy, request.SortOrder);
-
-            // Apply pagination
-            var projects = await sortedQuery
+            // Apply sorting and pagination with database-level projection for efficiency
+            var responses = await ApplySorting(query, request.SortBy, request.SortOrder)
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
+                .ProjectToProjectResponse()
                 .ToListAsync(cancellationToken);
-
-            // Map to response DTOs
-            var responses = projects.Select(MapToResponse).ToList();
 
             stopwatch.Stop();
 
@@ -66,7 +58,7 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
             BusinessMetrics.RecordDbQuery("GetFilteredProjects", responses.Count, stopwatch.ElapsedMilliseconds);
             BusinessMetrics.RecordPagingMetrics("Projects", request.PageNumber, request.PageSize, totalCount);
 
-            _logger.LogInformation(
+            _logger.LogDebug(
                 "Retrieved {Count} projects (Total: {TotalCount}, Page: {PageNumber}/{TotalPages}) in {ElapsedMs}ms",
                 responses.Count, totalCount, request.PageNumber,
                 (int)Math.Ceiling(totalCount / (double)request.PageSize), stopwatch.ElapsedMilliseconds);
@@ -96,7 +88,7 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
     {
         var query = _dbContext.Projects.AsNoTracking();
 
-        // PERFORMANCE TIP: Apply most selective filters first
+        // PERFORMANCE: Apply most selective filters first
         // Order: CompanyId (foreign key) > ProjectIdentifier > Type > Code > Location > Name (substring search)
 
         // Filter by company ID (indexed)
@@ -151,9 +143,9 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
         string sortBy,
         string sortOrder)
     {
-        var isDescending = sortOrder.Equals("desc", StringComparison.OrdinalIgnoreCase);
+        var isDescending = sortOrder?.Equals("desc", StringComparison.OrdinalIgnoreCase) ?? false;
 
-        return sortBy.ToLower() switch
+        return (sortBy?.ToLower()) switch
         {
             "code" => isDescending
                 ? query.OrderByDescending(p => p.Code).ThenBy(p => p.Id)
@@ -175,54 +167,6 @@ public class GetFilteredProjectsQueryHandler : IGetFilteredProjectsQueryHandler
             _ => isDescending
                 ? query.OrderByDescending(p => p.Name).ThenBy(p => p.Id)
                 : query.OrderBy(p => p.Name).ThenBy(p => p.Id)
-        };
-    }
-
-    /// <summary>
-    /// Maps a Project entity to ProjectResponse DTO
-    /// </summary>
-    private static ProjectResponse MapToResponse(Persistence.Entities.Project project)
-    {
-        return new ProjectResponse
-        {
-            Id = project.Id,
-            ProjectIdentifier = project.ProjectIdentifier,
-            Name = project.Name,
-            Code = project.Code,
-            Location = project.Location,
-            CompanyId = project.CompanyId,
-            Type = project.Type.ToString(),
-            Details = MapProjectDetails(project.Details),
-            CreatedAt = project.CreatedAt,
-            UpdatedAt = project.UpdatedAt
-        };
-    }
-
-    /// <summary>
-    /// Maps ProjectDetails value object to ProjectDetailsDto
-    /// </summary>
-    private static ProjectDetailsDto MapProjectDetails(Persistence.Entities.ValueObjects.ProjectDetails details)
-    {
-        return new ProjectDetailsDto
-        {
-            Budget = details.Budget,
-            Status = details.Status,
-            StartDate = details.StartDate,
-            EndDate = details.EndDate,
-            Description = details.Description,
-            ProjectManager = details.ProjectManager,
-            TeamMembers = details.TeamMembers,
-            Priority = details.Priority,
-            Tags = details.Tags,
-            Metrics = details.Metrics,
-            Metadata = details.Metadata,
-            ProgressPercentage = details.ProgressPercentage,
-            Notes = details.Notes,
-            BudgetSpent = details.BudgetSpent,
-            Outcome = details.Outcome,
-            RiskLevel = details.RiskLevel,
-            Deliverables = details.Deliverables,
-            Dependencies = details.Dependencies
         };
     }
 }

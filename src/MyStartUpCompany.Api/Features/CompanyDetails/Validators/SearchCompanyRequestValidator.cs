@@ -1,5 +1,6 @@
 using FluentValidation;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
+using MyStartUpCompany.Api.Shared.Constants;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Validators;
 
@@ -10,34 +11,30 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Validators;
 public class SearchCompanyRequestValidator : AbstractValidator<SearchCompanyRequest>
 {
     /// <summary>
-    /// Pagination and search field constraints.
+    /// Maximum length for location fields (city, country, region).
     /// </summary>
-    private const int MinPageNumber = 1;
-    private const int MaxPageNumber = 10000;
-    private const int MinPageSize = 1;
-    private const int MaxPageSize = 100;
-    private const int MaxStringLength = 100;
+    private const int MaxLocationFieldLength = 100;
 
     public SearchCompanyRequestValidator()
     {
         // Page Number validation
         RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(MinPageNumber)
-            .WithMessage($"Page number must be at least {MinPageNumber}.")
-            .LessThanOrEqualTo(MaxPageNumber)
-            .WithMessage($"Page number cannot exceed {MaxPageNumber}.");
+            .GreaterThanOrEqualTo(ValidationConstants.Pagination.MinPageNumber)
+            .WithMessage(ValidationConstants.Pagination.PageNumberErrorMessage)
+            .LessThanOrEqualTo(ValidationConstants.Pagination.MaxPageNumber)
+            .WithMessage(ValidationConstants.Pagination.PageNumberErrorMessage);
 
-        // Page Size validation
+        // Page Size validation - CRITICAL FOR SECURITY
         RuleFor(x => x.PageSize)
-            .GreaterThanOrEqualTo(MinPageSize)
-            .WithMessage($"Page size must be at least {MinPageSize}.")
-            .LessThanOrEqualTo(MaxPageSize)
-            .WithMessage($"Page size cannot exceed {MaxPageSize}.");
+            .GreaterThanOrEqualTo(ValidationConstants.Pagination.MinPageSize)
+            .WithMessage(ValidationConstants.Pagination.PageSizeErrorMessage)
+            .LessThanOrEqualTo(ValidationConstants.Pagination.MaxPageSize)
+            .WithMessage(ValidationConstants.Pagination.PageSizeErrorMessage);
 
         // Region validation - optional but if provided, validate format
         RuleFor(x => x.Region)
-            .MaximumLength(MaxStringLength)
-            .WithMessage($"Region cannot exceed {MaxStringLength} characters.")
+            .MaximumLength(MaxLocationFieldLength)
+            .WithMessage($"Region cannot exceed {MaxLocationFieldLength} characters.")
             .When(x => !string.IsNullOrWhiteSpace(x.Region))
             .DependentRules(() =>
             {
@@ -49,8 +46,8 @@ public class SearchCompanyRequestValidator : AbstractValidator<SearchCompanyRequ
 
         // Country validation - optional but if provided, validate format
         RuleFor(x => x.Country)
-            .MaximumLength(MaxStringLength)
-            .WithMessage($"Country cannot exceed {MaxStringLength} characters.")
+            .MaximumLength(MaxLocationFieldLength)
+            .WithMessage($"Country cannot exceed {MaxLocationFieldLength} characters.")
             .When(x => !string.IsNullOrWhiteSpace(x.Country))
             .DependentRules(() =>
             {
@@ -62,8 +59,8 @@ public class SearchCompanyRequestValidator : AbstractValidator<SearchCompanyRequ
 
         // City validation - optional but if provided, validate format
         RuleFor(x => x.City)
-            .MaximumLength(MaxStringLength)
-            .WithMessage($"City cannot exceed {MaxStringLength} characters.")
+            .MaximumLength(MaxLocationFieldLength)
+            .WithMessage($"City cannot exceed {MaxLocationFieldLength} characters.")
             .When(x => !string.IsNullOrWhiteSpace(x.City))
             .DependentRules(() =>
             {
@@ -88,8 +85,8 @@ public class SearchCompanyRequestValidator : AbstractValidator<SearchCompanyRequ
 
         // Search Term validation - optional but if provided, validate length
         RuleFor(x => x.SearchTerm)
-            .MaximumLength(100)
-            .WithMessage("Search term cannot exceed 100 characters.")
+            .MaximumLength(ValidationConstants.Search.MaxSearchTermLength)
+            .WithMessage($"Search term cannot exceed {ValidationConstants.Search.MaxSearchTermLength} characters.")
             .When(x => !string.IsNullOrWhiteSpace(x.SearchTerm));
     }
 }

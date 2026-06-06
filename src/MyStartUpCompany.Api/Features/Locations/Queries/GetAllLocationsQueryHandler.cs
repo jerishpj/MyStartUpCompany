@@ -41,24 +41,7 @@ public class GetAllLocationsQueryHandler : IGetAllLocationsQueryHandler
         var locations = await _dbContext.Locations
             .AsNoTracking()
             .OrderBy(l => l.Name)
-            .Select(l => new LocationResponse
-            {
-                Id = l.Id,
-                CompanyId = l.CompanyId,
-                Name = l.Name,
-                Description = l.Description,
-                Address = l.Address,
-                City = l.City,
-                Region = l.Region,
-                PostalCode = l.PostalCode,
-                Country = l.Country,
-                Phone = l.Phone,
-                Email = l.Email,
-                ManagerName = l.ManagerName,
-                IsActive = l.IsActive,
-                CreatedAt = l.CreatedAt,
-                UpdatedAt = l.UpdatedAt
-            })
+            .ProjectToLocationResponse()
             .ToListAsync(cancellationToken);
 
         _logger.LogInformation("Retrieved {LocationCount} locations", locations.Count);

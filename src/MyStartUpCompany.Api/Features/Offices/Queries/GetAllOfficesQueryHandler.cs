@@ -41,26 +41,7 @@ public class GetAllOfficesQueryHandler : IGetAllOfficesQueryHandler
         var offices = await _dbContext.Offices
             .AsNoTracking()
             .OrderBy(o => o.Name)
-            .Select(o => new OfficeResponse
-            {
-                Id = o.Id,
-                BuildingId = o.BuildingId,
-                Name = o.Name,
-                OfficeCode = o.OfficeCode,
-                Description = o.Description,
-                FloorNumber = o.FloorNumber,
-                Section = o.Section,
-                Capacity = o.Capacity,
-                OfficeType = o.OfficeType,
-                SquareMeters = o.SquareMeters,
-                Department = o.Department,
-                Manager = o.Manager,
-                Phone = o.Phone,
-                Email = o.Email,
-                IsActive = o.IsActive,
-                CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt
-            })
+            .ProjectToOfficeResponse()
             .ToListAsync(cancellationToken);
 
         _logger.LogInformation("Retrieved {OfficeCount} offices", offices.Count);

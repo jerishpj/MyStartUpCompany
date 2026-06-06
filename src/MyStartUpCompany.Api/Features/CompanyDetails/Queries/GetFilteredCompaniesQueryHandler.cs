@@ -22,39 +22,26 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
         SearchCompanyRequest request,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            "Retrieving filtered companies - Region: {Region}, Country: {Country}, City: {City}, " +
-            "PostalCode: {PostalCode}, SearchTerm: {SearchTerm}, PageNumber: {PageNumber}, PageSize: {PageSize}",
-            request.Region, request.Country, request.City, request.PostalCode,
-            request.SearchTerm, request.PageNumber, request.PageSize);
+        _logger.LogDebug(
+            "Retrieving filtered companies - PageNumber: {PageNumber}, PageSize: {PageSize}",
+            request.PageNumber, request.PageSize);
 
         // Build optimized query
         var query = BuildQuery(request);
 
-        // Get total count (consider caching this for subsequent pages)
+        // Get total count
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Apply pagination with optimized ordering
+        // Apply pagination with database-level projection for efficiency
         var companies = await query
             .OrderBy(c => c.Name)
             .ThenBy(c => c.Id) // Stable sort for consistent pagination
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(c => new CompanyResponse
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                Address = c.Address,
-                City = c.City,
-                Region = c.Region,
-                PostalCode = c.PostalCode,
-                Country = c.Country,
-                Phone = c.Phone
-            })
+            .ProjectToCompanyResponse()
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation(
+        _logger.LogDebug(
             "Retrieved {Count} companies (Total: {TotalCount}, Page: {PageNumber}/{TotalPages})",
             companies.Count, totalCount, request.PageNumber,
             (int)Math.Ceiling(totalCount / (double)request.PageSize));
@@ -68,39 +55,49 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
         };
     }
 
+    /// <summary>
+    /// Builds the optimized query with database-level filters.
+    /// Applies filters in order of selectivity (most selective first) for query optimization.
+    /// </summary>
     private IQueryable<Persistence.Entities.Company> BuildQuery(SearchCompanyRequest request)
     {
         var query = _dbContext.Companies.AsNoTracking();
 
-        // PERFORMANCE TIP: Apply most selective filters first
+        // PERFORMANCE: Apply most selective filters first
         // Order: PostalCode (most selective) > City > Region > Country > SearchTerm
 
-        // Exact match for postal code (fastest)
+        // Exact match for postal code (fastest, most selective)
         if (!string.IsNullOrWhiteSpace(request.PostalCode))
         {
             query = query.Where(c => c.PostalCode == request.PostalCode);
         }
 
-        // Use EF.Functions.Like for better index utilization
+        // City - use EF.Functions.Like for better database-level optimization
         if (!string.IsNullOrWhiteSpace(request.City))
         {
-            query = query.Where(c => EF.Functions.Like(c.City, $"%{EscapeLikeParameter(request.City)}%"));
+            var city = request.City.Trim();
+            query = query.Where(c => EF.Functions.Like(c.City, $"%{EscapeLikeParameter(city)}%"));
         }
 
+        // Region - use EF.Functions.Like
         if (!string.IsNullOrWhiteSpace(request.Region))
         {
+            var region = request.Region.Trim();
             query = query.Where(c => c.Region != null &&
-                EF.Functions.Like(c.Region, $"%{EscapeLikeParameter(request.Region)}%"));
+                EF.Functions.Like(c.Region, $"%{EscapeLikeParameter(region)}%"));
         }
 
+        // Country - use EF.Functions.Like
         if (!string.IsNullOrWhiteSpace(request.Country))
         {
-            query = query.Where(c => EF.Functions.Like(c.Country, $"%{EscapeLikeParameter(request.Country)}%"));
+            var country = request.Country.Trim();
+            query = query.Where(c => EF.Functions.Like(c.Country, $"%{EscapeLikeParameter(country)}%"));
         }
 
+        // Search term - least selective (substring search on multiple fields)
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var escapedTerm = EscapeLikeParameter(request.SearchTerm);
+            var escapedTerm = EscapeLikeParameter(request.SearchTerm.Trim());
             var searchPattern = $"%{escapedTerm}%";
             query = query.Where(c =>
                 EF.Functions.Like(c.Name, searchPattern) ||
@@ -112,6 +109,7 @@ public class GetFilteredCompaniesQueryHandler : IGetFilteredCompaniesQueryHandle
 
     /// <summary>
     /// Escapes special characters in LIKE patterns to prevent SQL injection
+    /// and ensure correct pattern matching.
     /// </summary>
     private static string EscapeLikeParameter(string parameter)
     {

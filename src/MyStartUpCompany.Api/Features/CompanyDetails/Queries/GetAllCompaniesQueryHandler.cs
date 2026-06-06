@@ -29,18 +29,7 @@ public class GetAllCompaniesQueryHandler : IGetAllCompaniesQueryHandler
 
             var companies = await _dbContext.Companies
                 .AsNoTracking()
-                .Select(c => new CompanyResponse
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    Address = c.Address,
-                    City = c.City,
-                    Region = c.Region,
-                    PostalCode = c.PostalCode,
-                    Country = c.Country,
-                    Phone = c.Phone,
-                })
+                .ProjectToCompanyResponse()
                 .ToListAsync(cancellationToken);
 
             stopwatch.Stop();
