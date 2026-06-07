@@ -43,8 +43,10 @@ public class GetFilteredBuildingsQueryHandler : IGetFilteredBuildingsQueryHandle
     {
         _logger.LogInformation(
             "Retrieving filtered buildings. SearchTerm: {SearchTerm}, LocationId: {LocationId}, " +
-            "PageNumber: {PageNumber}, PageSize: {PageSize}",
-            request.SearchTerm, request.LocationId, request.PageNumber, request.PageSize);
+            "OfficeCodes: {OfficeCodes}, PageNumber: {PageNumber}, PageSize: {PageSize}",
+            request.SearchTerm, request.LocationId, 
+            string.Join(",", request.OfficeCodes ?? Enumerable.Empty<string>()),
+            request.PageNumber, request.PageSize);
 
         var query = _dbContext.Buildings.AsNoTracking();
 
@@ -71,6 +73,14 @@ public class GetFilteredBuildingsQueryHandler : IGetFilteredBuildingsQueryHandle
         if (request.IsActive.HasValue)
         {
             query = query.Where(b => b.IsActive == request.IsActive);
+        }
+
+        // Filter by office codes if provided
+        if (request.OfficeCodes != null && request.OfficeCodes.Any())
+        {
+            var officeCodes = request.OfficeCodes.ToList();
+            query = query.Where(b => b.Offices!.Any(o => 
+                o.OfficeCode != null && officeCodes.Contains(o.OfficeCode)));
         }
 
         // Get total count before pagination

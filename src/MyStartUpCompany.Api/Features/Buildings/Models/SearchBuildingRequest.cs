@@ -12,6 +12,7 @@ public record SearchBuildingRequest(
     int? LocationId = null,
     string? BuildingCode = null,
     bool? IsActive = null,
+    IEnumerable<string>? OfficeCodes = null,
     int PageNumber = 1,
     int PageSize = 10,
     string? SortBy = "Name",
@@ -36,6 +37,11 @@ public record SearchBuildingRequest(
     /// Filter by active status
     /// </summary>
     public bool? IsActive { get; init; } = IsActive;
+
+    /// <summary>
+    /// Filter by office codes (collection). Returns buildings that contain offices with any of these codes.
+    /// </summary>
+    public IEnumerable<string>? OfficeCodes { get; init; } = OfficeCodes;
 
     /// <summary>
     /// Page number (1-based). Defaults to 1 if not provided or invalid.
