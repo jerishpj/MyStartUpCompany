@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MyStartUpCompany.Api.Features.Buildings.Models;
 
@@ -12,7 +13,7 @@ public record SearchBuildingRequest(
     int? LocationId = null,
     string? BuildingCode = null,
     bool? IsActive = null,
-    IEnumerable<string>? OfficeCodes = null,
+    [FromQuery(Name = "officeCodes")] IEnumerable<string>? OfficeCodes = null,
     int PageNumber = 1,
     int PageSize = 10,
     string? SortBy = "Name",
@@ -40,7 +41,9 @@ public record SearchBuildingRequest(
 
     /// <summary>
     /// Filter by office codes (collection). Returns buildings that contain offices with any of these codes.
+    /// Send multiple values using: ?officeCodes=CODE1&officeCodes=CODE2&officeCodes=CODE3
     /// </summary>
+    [FromQuery(Name = "officeCodes")]
     public IEnumerable<string>? OfficeCodes { get; init; } = OfficeCodes;
 
     /// <summary>
