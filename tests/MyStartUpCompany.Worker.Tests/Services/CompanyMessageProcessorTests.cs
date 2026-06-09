@@ -1,4 +1,5 @@
 using MyStartUpCompany.Persistence;
+using MyStartUpCompany.Persistence.Repositories;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Services;
 using MyStartUpCompany.Worker.Tests.Utilities;
@@ -20,8 +21,9 @@ namespace MyStartUpCompany.Worker.Tests.Services
             _dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
 
             // Create real AddCompanyEventHandler instance
+            var companyRepository = new CompanyRepository(_dbContext);
             var loggerForHandler = new Mock<ILogger<AddCompanyEventHandler>>().Object;
-            _handler = new AddCompanyEventHandler(_dbContext, loggerForHandler);
+            _handler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
 
             _loggerMock = new Mock<ILogger<CompanyMessageProcessor>>().Object;
             _processor = new CompanyMessageProcessor(_handler, _loggerMock);

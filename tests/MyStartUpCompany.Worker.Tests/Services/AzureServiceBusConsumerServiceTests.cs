@@ -1,4 +1,5 @@
 using Azure.Messaging.ServiceBus;
+using MyStartUpCompany.Persistence.Repositories;
 using MyStartUpCompany.Worker.Configuration;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Services;
@@ -293,8 +294,9 @@ namespace MyStartUpCompany.Worker.Tests.Services
             // This test verifies the integration between service bus consumer and message processor
             var uniqueDbName = Guid.NewGuid().ToString();
             var dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
+            var companyRepository = new CompanyRepository(dbContext);
             var loggerForHandler = new Mock<ILogger<AddCompanyEventHandler>>().Object;
-            var handler = new AddCompanyEventHandler(dbContext, loggerForHandler);
+            var handler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
 
             var processorLogger = new Mock<ILogger<CompanyMessageProcessor>>().Object;
             var processor = new CompanyMessageProcessor(handler, processorLogger);

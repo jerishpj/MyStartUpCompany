@@ -1,4 +1,5 @@
 using MyStartUpCompany.Persistence;
+using MyStartUpCompany.Persistence.Repositories;
 using MyStartUpCompany.Worker.Services;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Tests.Utilities;
@@ -28,8 +29,9 @@ namespace MyStartUpCompany.Worker.Tests
             // Create real handler with in-memory database
             var uniqueDbName = Guid.NewGuid().ToString();
             var dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
+            var companyRepository = new CompanyRepository(dbContext);
             var loggerForHandler = new Mock<ILogger<AddCompanyEventHandler>>().Object;
-            var realHandler = new AddCompanyEventHandler(dbContext, loggerForHandler);
+            var realHandler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
 
             // Create file processor with proper environment setup
             var environmentMock = new Mock<IHostEnvironment>();

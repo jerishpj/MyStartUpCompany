@@ -1,4 +1,5 @@
 using MyStartUpCompany.Persistence;
+using MyStartUpCompany.Persistence.Repositories;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Tests.Utilities;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ namespace MyStartUpCompany.Worker.Tests.Handlers.AddCompany
     public class AddCompanyEventHandlerTests : IDisposable
     {
         private readonly AppDbContext _dbContext;
+        private readonly ICompanyRepository _companyRepository;
         private readonly ILogger<AddCompanyEventHandler> _loggerMock;
         private readonly AddCompanyEventHandler _handler;
 
@@ -16,8 +18,9 @@ namespace MyStartUpCompany.Worker.Tests.Handlers.AddCompany
             // Create in-memory database context with unique name for each test
             var uniqueDbName = Guid.NewGuid().ToString();
             _dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
+            _companyRepository = new CompanyRepository(_dbContext);
             _loggerMock = new Mock<ILogger<AddCompanyEventHandler>>().Object;
-            _handler = new AddCompanyEventHandler(_dbContext, _loggerMock);
+            _handler = new AddCompanyEventHandler(_companyRepository, _loggerMock);
         }
 
         public void Dispose()
@@ -75,11 +78,21 @@ namespace MyStartUpCompany.Worker.Tests.Handlers.AddCompany
         }
 
         [Fact]
-        public async Task HandleAsync_WithDuplicateCompanyName_ShouldReturnFalse()
+        public async Task HandleAsync_WithDuplicateCompanyNameAndAddress_ShouldUpdateExisting()
         {
-            // Arrange
+            // Arrange - Create two DTOs with same name and address (will trigger update)
             var company1 = TestDataFactory.CreateValidCompanyInputDto(name: "Duplicate Corp");
-            var company2 = TestDataFactory.CreateValidCompanyInputDto(name: "Duplicate Corp");
+            var company2 = new CompanyInputDto
+            {
+                Name = company1.Name,
+                Address = company1.Address,
+                City = "Updated City",
+                Region = "Updated Region",
+                PostalCode = "99999",
+                Country = "Updated Country",
+                Phone = "999-9999",
+                Description = "Updated Description"
+            };
 
             // Act
             var firstResult = await _handler.HandleAsync(company1);
@@ -87,26 +100,44 @@ namespace MyStartUpCompany.Worker.Tests.Handlers.AddCompany
 
             // Assert
             firstResult.Should().BeTrue();
-            secondResult.Should().BeFalse();
+            secondResult.Should().BeTrue(); // Now returns true because it's an upsert
             var count = _dbContext.Companies.Count(c => c.Name == "Duplicate Corp");
-            count.Should().Be(1, "Only the first company should be inserted");
+            count.Should().Be(1, "Should have only one company record after upsert");
+
+            // Verify the update occurred
+            var updatedCompany = _dbContext.Companies.FirstOrDefault(c => c.Name == "Duplicate Corp");
+            updatedCompany.Should().NotBeNull();
+            updatedCompany.City.Should().Be("Updated City");
+            updatedCompany.Region.Should().Be("Updated Region");
+            updatedCompany.PostalCode.Should().Be("99999");
         }
 
         [Fact]
-        public async Task HandleAsync_WithDifferentCompanies_ShouldInsertBoth()
+        public async Task HandleAsync_WithDuplicateNameButDifferentAddress_ShouldInsertBoth()
         {
-            // Arrange
-            var company1 = TestDataFactory.CreateValidCompanyInputDto(name: "Company One");
-            var company2 = TestDataFactory.CreateValidCompanyInputDto(name: "Company Two");
+            // Arrange - Same name but different address should insert as separate records
+            var company1 = TestDataFactory.CreateValidCompanyInputDto(name: "MultiLocation Corp");
+            var company2 = new CompanyInputDto
+            {
+                Name = "MultiLocation Corp",
+                Address = "Different Address, Different City",
+                City = "Other City",
+                Region = "Other Region",
+                PostalCode = "54321",
+                Country = "Other Country",
+                Phone = "555-0200",
+                Description = "Other Location"
+            };
 
             // Act
-            var result1 = await _handler.HandleAsync(company1);
-            var result2 = await _handler.HandleAsync(company2);
+            var firstResult = await _handler.HandleAsync(company1);
+            var secondResult = await _handler.HandleAsync(company2);
 
             // Assert
-            result1.Should().BeTrue();
-            result2.Should().BeTrue();
-            _dbContext.Companies.Count().Should().Be(2);
+            firstResult.Should().BeTrue();
+            secondResult.Should().BeTrue();
+            var count = _dbContext.Companies.Count(c => c.Name == "MultiLocation Corp");
+            count.Should().Be(2, "Should have two distinct company records with same name but different addresses");
         }
 
         [Fact]
