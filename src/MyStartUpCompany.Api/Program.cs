@@ -1,4 +1,5 @@
 using FluentValidation;
+using MyStartUpCompany.Api.Extensions;
 using MyStartUpCompany.Api.Features.Buildings.Queries;
 using MyStartUpCompany.Api.Features.Buildings.Validators;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
@@ -28,6 +29,9 @@ public partial class Program
             // Register pagination model binder provider to handle empty/null values for PageNumber and PageSize
             options.ModelBinderProviders.Insert(0, new PaginationModelBinderProvider());
         });
+
+        // Register application configuration options (validated at startup)
+        builder.Services.AddApplicationOptions(builder.Configuration);
 
         // Add OpenTelemetry observability
         builder.Services.AddObservability(builder.Configuration, builder.Environment);

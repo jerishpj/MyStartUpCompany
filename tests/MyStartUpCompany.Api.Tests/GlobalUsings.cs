@@ -1,5 +1,9 @@
 global using System.Net.Http.Json;
 global using FluentAssertions;
+global using Moq;
+global using Xunit;
 global using MyStartUpCompany.Api.Tests.Shared.TestData.Builders;
 global using MyStartUpCompany.Api.Tests.Shared.TestData;
 global using MyStartUpCompany.Api.Tests.Shared.Extensions;
+global using Microsoft.Extensions.Options;
+global using Microsoft.Extensions.Logging;
