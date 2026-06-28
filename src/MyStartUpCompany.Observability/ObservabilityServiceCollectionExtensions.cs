@@ -199,11 +199,6 @@ public static class ObservabilityServiceCollectionExtensions
                     meterProvider.AddRuntimeInstrumentation();
                 }
 
-                if (options.Instrumentation.Process)
-                {
-                    meterProvider.AddProcessInstrumentation();
-                }
-
                 // Exporters
                 if (options.Exporters.Otlp.Enabled)
                 {
