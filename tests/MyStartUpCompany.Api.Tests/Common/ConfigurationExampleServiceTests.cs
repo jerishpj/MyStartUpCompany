@@ -1,6 +1,7 @@
 using MyStartUpCompany.Api.Configuration;
 using MyStartUpCompany.Api.Services;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 
 namespace MyStartUpCompany.Api.Tests.Common
 {
@@ -13,7 +14,7 @@ namespace MyStartUpCompany.Api.Tests.Common
 
         public ConfigurationExampleServiceTests()
         {
-            _mockLogger = new Mock<ILogger<ConfigurationExampleService>>().Object;
+            _mockLogger = Substitute.For<ILogger<ConfigurationExampleService>>();
         }
 
         #region Pagination Tests

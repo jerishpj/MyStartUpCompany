@@ -6,19 +6,20 @@ using MyStartUpCompany.Worker.Services;
 using MyStartUpCompany.Worker.Tests.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 
 namespace MyStartUpCompany.Worker.Tests.Services
 {
     public class AzureServiceBusConsumerServiceTests
     {
-        private readonly Mock<ILogger<AzureServiceBusConsumerService>> _loggerMock;
-        private readonly Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
+        private readonly ILogger<AzureServiceBusConsumerService> _logger;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly AzureServiceBusSettings _settings;
 
         public AzureServiceBusConsumerServiceTests()
         {
-            _loggerMock = new Mock<ILogger<AzureServiceBusConsumerService>>();
-            _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
+            _logger = Substitute.For<ILogger<AzureServiceBusConsumerService>>();
+            _serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
 
             _settings = new AzureServiceBusSettings
             {
@@ -35,7 +36,7 @@ namespace MyStartUpCompany.Worker.Tests.Services
         public void Constructor_WithValidSettings_ShouldInitialize()
         {
             // Act
-            var service = new AzureServiceBusConsumerService(_loggerMock.Object, _settings, _serviceScopeFactoryMock.Object);
+            var service = new AzureServiceBusConsumerService(_logger, _settings, _serviceScopeFactory);
 
             // Assert
             service.Should().NotBeNull();
@@ -46,7 +47,7 @@ namespace MyStartUpCompany.Worker.Tests.Services
         {
             // Act & Assert - Constructor doesn't validate, but will fail when used
             FluentActions.Invoking(() => 
-                new AzureServiceBusConsumerService(null!, _settings, _serviceScopeFactoryMock.Object))
+                new AzureServiceBusConsumerService(null!, _settings, _serviceScopeFactory))
                 .Should()
                 .NotThrow();
         }
@@ -56,7 +57,7 @@ namespace MyStartUpCompany.Worker.Tests.Services
         {
             // Act & Assert - Constructor doesn't validate, but will fail when used
             FluentActions.Invoking(() => 
-                new AzureServiceBusConsumerService(_loggerMock.Object, null!, _serviceScopeFactoryMock.Object))
+                new AzureServiceBusConsumerService(_logger, null!, _serviceScopeFactory))
                 .Should()
                 .NotThrow();
         }
@@ -66,7 +67,7 @@ namespace MyStartUpCompany.Worker.Tests.Services
         {
             // Act & Assert - Constructor doesn't validate, but will fail when used
             FluentActions.Invoking(() => 
-                new AzureServiceBusConsumerService(_loggerMock.Object, _settings, null!))
+                new AzureServiceBusConsumerService(_logger, _settings, null!))
                 .Should()
                 .NotThrow();
         }
@@ -291,18 +292,18 @@ namespace MyStartUpCompany.Worker.Tests.Services
         [Fact]
         public void CompanyMessageProcessor_WithRealHandler_ShouldProcess()
         {
-            // This test verifies the integration between service bus consumer and message processor
-            var uniqueDbName = Guid.NewGuid().ToString();
-            var dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
-            var companyRepository = new CompanyRepository(dbContext);
-            var loggerForHandler = new Mock<ILogger<AddCompanyEventHandler>>().Object;
-            var handler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
+                        // This test verifies the integration between service bus consumer and message processor
+                        var uniqueDbName = Guid.NewGuid().ToString();
+                        var dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
+                        var companyRepository = new CompanyRepository(dbContext);
+                        var loggerForHandler = Substitute.For<ILogger<AddCompanyEventHandler>>();
+                        var handler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
 
-            var processorLogger = new Mock<ILogger<CompanyMessageProcessor>>().Object;
-            var processor = new CompanyMessageProcessor(handler, processorLogger);
+                        var processorLogger = Substitute.For<ILogger<CompanyMessageProcessor>>();
+                        var processor = new CompanyMessageProcessor(handler, processorLogger);
 
-            processor.Should().NotBeNull();
-            dbContext.Dispose();
-        }
-    }
-}
+                        processor.Should().NotBeNull();
+                        dbContext.Dispose();
+                    }
+                }
+            }

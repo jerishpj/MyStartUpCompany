@@ -53,8 +53,7 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
 
         builder.HasIndex(e => e.Email)
             .HasDatabaseName("IX_Employee_Email")
-            .IsUnique()
-            .HasFilter("[Email] IS NOT NULL");
+            .IsUnique();
 
         builder.HasIndex(e => e.Title)
             .HasDatabaseName("IX_Employee_Title");

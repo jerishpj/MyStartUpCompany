@@ -3,6 +3,7 @@ using MyStartUpCompany.Persistence.Repositories;
 using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Tests.Utilities;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
 
 namespace MyStartUpCompany.Worker.Tests.Handlers.AddCompany
 {
@@ -19,7 +20,7 @@ namespace MyStartUpCompany.Worker.Tests.Handlers.AddCompany
             var uniqueDbName = Guid.NewGuid().ToString();
             _dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
             _companyRepository = new CompanyRepository(_dbContext);
-            _loggerMock = new Mock<ILogger<AddCompanyEventHandler>>().Object;
+            _loggerMock = Substitute.For<ILogger<AddCompanyEventHandler>>();
             _handler = new AddCompanyEventHandler(_companyRepository, _loggerMock);
         }
 

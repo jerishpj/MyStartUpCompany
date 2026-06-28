@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using MyStartUpCompany.Api.Features.CompanyDetails;
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.CompanyDetails.Queries;
@@ -11,24 +11,24 @@ namespace MyStartUpCompany.Api.Tests.Features.CompanyDetails;
 
 public class CompanyControllerTests
 {       
-    private readonly Mock<IGetCompanyQueryHandler> _getCompanyHandlerMock;
-    private readonly Mock<IGetAllCompaniesQueryHandler> _getAllCompaniesHandlerMock;
-    private readonly Mock<IGetFilteredCompaniesQueryHandler> _getFilteredCompaniesHandlerMock;
-    private readonly Mock<ILogger<CompanyController>> _loggerMock;
+    private readonly IGetCompanyQueryHandler _getCompanyHandler;
+    private readonly IGetAllCompaniesQueryHandler _getAllCompaniesHandler;
+    private readonly IGetFilteredCompaniesQueryHandler _getFilteredCompaniesHandler;
+    private readonly ILogger<CompanyController> _logger;
     private readonly CompanyController _controller;
 
     public CompanyControllerTests()
     {
-        _getCompanyHandlerMock = new Mock<IGetCompanyQueryHandler>();
-        _getAllCompaniesHandlerMock = new Mock<IGetAllCompaniesQueryHandler>();
-        _getFilteredCompaniesHandlerMock = new Mock<IGetFilteredCompaniesQueryHandler>();
-        _loggerMock = new Mock<ILogger<CompanyController>>();
+        _getCompanyHandler = Substitute.For<IGetCompanyQueryHandler>();
+        _getAllCompaniesHandler = Substitute.For<IGetAllCompaniesQueryHandler>();
+        _getFilteredCompaniesHandler = Substitute.For<IGetFilteredCompaniesQueryHandler>();
+        _logger = Substitute.For<ILogger<CompanyController>>();
 
         _controller = new CompanyController(
-            _getCompanyHandlerMock.Object,
-            _getAllCompaniesHandlerMock.Object,
-            _getFilteredCompaniesHandlerMock.Object,
-            _loggerMock.Object);
+            _getCompanyHandler,
+            _getAllCompaniesHandler,
+            _getFilteredCompaniesHandler,
+            _logger);
     }
 
     [Fact]
@@ -47,9 +47,9 @@ public class CompanyControllerTests
             Phone = "+1-555-1234"
         };
 
-        _getCompanyHandlerMock
-            .Setup(h => h.HandleAsync(companyId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedCompany);
+        _getCompanyHandler
+            .HandleAsync(companyId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(expectedCompany));
 
         // Act
         var result = await _controller.GetCompany(companyId, CancellationToken.None);
@@ -59,9 +59,7 @@ public class CompanyControllerTests
         var okResult = result as OkObjectResult;
         okResult!.Value.Should().BeEquivalentTo(expectedCompany);
 
-        _getCompanyHandlerMock.Verify(
-            h => h.HandleAsync(companyId, It.IsAny<CancellationToken>()),
-            Times.Once);
+        await _getCompanyHandler.Received(1).HandleAsync(companyId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -69,9 +67,9 @@ public class CompanyControllerTests
     {
         // Arrange
         var companyId = 999;
-        _getCompanyHandlerMock
-            .Setup(h => h.HandleAsync(companyId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NotFoundException("Company", companyId));
+        _getCompanyHandler
+            .HandleAsync(companyId, Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromException<CompanyResponse>(new NotFoundException("Company", companyId)));
 
         // Act
         var act = async () => await _controller.GetCompany(companyId, CancellationToken.None);
@@ -85,9 +83,9 @@ public class CompanyControllerTests
     {
         // Arrange
         var invalidId = -1;
-        _getCompanyHandlerMock
-            .Setup(h => h.HandleAsync(invalidId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new BadRequestException("Company ID must be greater than 0"));
+        _getCompanyHandler
+            .HandleAsync(invalidId, Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromException<CompanyResponse>(new BadRequestException("Company ID must be greater than 0")));
 
         // Act
         var act = async () => await _controller.GetCompany(invalidId, CancellationToken.None);
@@ -106,9 +104,9 @@ public class CompanyControllerTests
             new() { Id = 2, Name = "Company 2", Address = "Address 2", City = "City 2", PostalCode = "67890", Country = "Country 2", Phone = "+1-555-2222" }
         };
 
-        _getAllCompaniesHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedCompanies);
+        _getAllCompaniesHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult((IEnumerable<CompanyResponse>)expectedCompanies));
 
         // Act
         var result = await _controller.GetAllCompanies(CancellationToken.None);
@@ -118,18 +116,16 @@ public class CompanyControllerTests
         var okResult = result as OkObjectResult;
         okResult!.Value.Should().BeEquivalentTo(expectedCompanies);
 
-        _getAllCompaniesHandlerMock.Verify(
-            h => h.HandleAsync(It.IsAny<CancellationToken>()),
-            Times.Once);
+        await _getAllCompaniesHandler.Received(1).HandleAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetAllCompanies_WithEmptyDatabase_ReturnsEmptyList()
     {
         // Arrange
-        _getAllCompaniesHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<CompanyResponse>());
+        _getAllCompaniesHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult((IEnumerable<CompanyResponse>)new List<CompanyResponse>()));
 
         // Act
         var result = await _controller.GetAllCompanies(CancellationToken.None);

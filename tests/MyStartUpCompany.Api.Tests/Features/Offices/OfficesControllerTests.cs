@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using MyStartUpCompany.Api.Features.Offices;
 using MyStartUpCompany.Api.Features.Offices.Models;
 using MyStartUpCompany.Api.Features.Offices.Queries;
@@ -17,24 +17,24 @@ namespace MyStartUpCompany.Api.Tests.Features.Offices;
 /// </summary>
 public class OfficesControllerTests
 {
-    private readonly Mock<IGetOfficeQueryHandler> _getOfficeHandlerMock;
-    private readonly Mock<IGetAllOfficesQueryHandler> _getAllOfficesHandlerMock;
-    private readonly Mock<IGetFilteredOfficesQueryHandler> _getFilteredOfficesHandlerMock;
-    private readonly Mock<ILogger<OfficesController>> _loggerMock;
+    private readonly IGetOfficeQueryHandler _getOfficeHandler;
+    private readonly IGetAllOfficesQueryHandler _getAllOfficesHandler;
+    private readonly IGetFilteredOfficesQueryHandler _getFilteredOfficesHandler;
+    private readonly ILogger<OfficesController> _logger;
     private readonly OfficesController _controller;
 
     public OfficesControllerTests()
     {
-        _getOfficeHandlerMock = new Mock<IGetOfficeQueryHandler>();
-        _getAllOfficesHandlerMock = new Mock<IGetAllOfficesQueryHandler>();
-        _getFilteredOfficesHandlerMock = new Mock<IGetFilteredOfficesQueryHandler>();
-        _loggerMock = new Mock<ILogger<OfficesController>>();
+        _getOfficeHandler = Substitute.For<IGetOfficeQueryHandler>();
+        _getAllOfficesHandler = Substitute.For<IGetAllOfficesQueryHandler>();
+        _getFilteredOfficesHandler = Substitute.For<IGetFilteredOfficesQueryHandler>();
+        _logger = Substitute.For<ILogger<OfficesController>>();
 
         _controller = new OfficesController(
-            _getOfficeHandlerMock.Object,
-            _getAllOfficesHandlerMock.Object,
-            _getFilteredOfficesHandlerMock.Object,
-            _loggerMock.Object);
+            _getOfficeHandler,
+            _getAllOfficesHandler,
+            _getFilteredOfficesHandler,
+            _logger);
     }
 
     #region GetOffice Tests
@@ -50,9 +50,9 @@ public class OfficesControllerTests
             .Build();
         var response = MapToResponse(officeResponse);
 
-        _getOfficeHandlerMock
-            .Setup(h => h.HandleAsync(officeId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
+        _getOfficeHandler
+            .HandleAsync(officeId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetOffice(officeId, CancellationToken.None);
@@ -61,7 +61,7 @@ public class OfficesControllerTests
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
         okResult?.Value.Should().BeEquivalentTo(response);
-        _getOfficeHandlerMock.Verify(h => h.HandleAsync(officeId, It.IsAny<CancellationToken>()), Times.Once);
+        await _getOfficeHandler.Received(1).HandleAsync(officeId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -69,9 +69,9 @@ public class OfficesControllerTests
     {
         // Arrange
         var officeId = 9999;
-        _getOfficeHandlerMock
-            .Setup(h => h.HandleAsync(officeId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NotFoundException("Office", officeId));
+        _getOfficeHandler
+            .HandleAsync(officeId, Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromException<OfficeResponse>(new NotFoundException("Office", officeId)));
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetOffice(officeId, CancellationToken.None));
@@ -82,9 +82,9 @@ public class OfficesControllerTests
     {
         // Arrange
         var officeId = 0;
-        _getOfficeHandlerMock
-            .Setup(h => h.HandleAsync(officeId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NotFoundException("Office", officeId));
+        _getOfficeHandler
+            .HandleAsync(officeId, Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromException<OfficeResponse>(new NotFoundException("Office", officeId)));
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetOffice(officeId, CancellationToken.None));
@@ -102,16 +102,15 @@ public class OfficesControllerTests
         var response = MapToResponse(officeResponse);
 
         var cts = new CancellationTokenSource();
-        _getOfficeHandlerMock
-            .Setup(h => h.HandleAsync(officeId, cts.Token))
-            .ReturnsAsync(response);
+        _getOfficeHandler
+            .HandleAsync(officeId, cts.Token)
+            .Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetOffice(officeId, cts.Token);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getOfficeHandlerMock.Verify(h => h.HandleAsync(officeId, cts.Token), Times.Once);
     }
 
     [Fact]
@@ -125,9 +124,9 @@ public class OfficesControllerTests
             .Build();
         var response = MapToResponse(officeResponse);
 
-        _getOfficeHandlerMock
-            .Setup(h => h.HandleAsync(officeId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
+        _getOfficeHandler
+            .HandleAsync(officeId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetOffice(officeId, CancellationToken.None);
@@ -150,9 +149,9 @@ public class OfficesControllerTests
             .Build();
         var response = MapToResponse(officeResponse);
 
-        _getOfficeHandlerMock
-            .Setup(h => h.HandleAsync(officeId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
+        _getOfficeHandler
+            .HandleAsync(officeId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(response));
 
         // Act
         var result = await _controller.GetOffice(officeId, CancellationToken.None);
@@ -178,9 +177,9 @@ public class OfficesControllerTests
         var office2 = new OfficeBuilder().WithId(2).AsSalesDepartmentFloor().Build();
         var offices = new[] { MapToResponse(office1), MapToResponse(office2) };
 
-        _getAllOfficesHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(offices);
+        _getAllOfficesHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult((IEnumerable<OfficeResponse>)offices));
 
         // Act
         var result = await _controller.GetAllOffices(CancellationToken.None);
@@ -197,9 +196,9 @@ public class OfficesControllerTests
     {
         // Arrange
         var emptyList = Array.Empty<OfficeResponse>();
-        _getAllOfficesHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(emptyList);
+        _getAllOfficesHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult((IEnumerable<OfficeResponse>)emptyList));
 
         // Act
         var result = await _controller.GetAllOffices(CancellationToken.None);
@@ -219,16 +218,15 @@ public class OfficesControllerTests
         var offices = new[] { MapToResponse(office) };
 
         var cts = new CancellationTokenSource();
-        _getAllOfficesHandlerMock
-            .Setup(h => h.HandleAsync(cts.Token))
-            .ReturnsAsync(offices);
+        _getAllOfficesHandler
+            .HandleAsync(cts.Token)
+            .Returns(x => Task.FromResult((IEnumerable<OfficeResponse>)offices));
 
         // Act
         var result = await _controller.GetAllOffices(cts.Token);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getAllOfficesHandlerMock.Verify(h => h.HandleAsync(cts.Token), Times.Once);
     }
 
     [Fact]
@@ -245,9 +243,9 @@ public class OfficesControllerTests
             MapToResponse(office1)   // Zebra last
         };
 
-        _getAllOfficesHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(offices);
+        _getAllOfficesHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult((IEnumerable<OfficeResponse>)offices));
 
         // Act
         var result = await _controller.GetAllOffices(CancellationToken.None);
@@ -266,9 +264,9 @@ public class OfficesControllerTests
         var inactiveOffice = new OfficeBuilder().WithId(2).WithIsActive(false).Build();
         var offices = new[] { MapToResponse(activeOffice), MapToResponse(inactiveOffice) };
 
-        _getAllOfficesHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(offices);
+        _getAllOfficesHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromResult((IEnumerable<OfficeResponse>)offices));
 
         // Act
         var result = await _controller.GetAllOffices(CancellationToken.None);
@@ -304,9 +302,9 @@ public class OfficesControllerTests
         };
 
         var request = new SearchOfficeRequest();
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<SearchOfficeRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(Arg.Any<SearchOfficeRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
@@ -336,19 +334,18 @@ public class OfficesControllerTests
         };
 
         var request = new SearchOfficeRequest(SearchTerm: "Executive");
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredOfficesHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchOfficeRequest>(r => r.SearchTerm == "Executive"), 
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+        await _getFilteredOfficesHandler.Received(1).HandleAsync(
+            Arg.Is<SearchOfficeRequest>(r => r.SearchTerm == "Executive"), 
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -369,19 +366,18 @@ public class OfficesControllerTests
         };
 
         var request = new SearchOfficeRequest(BuildingId: 5);
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredOfficesHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchOfficeRequest>(r => r.BuildingId == 5), 
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+        await _getFilteredOfficesHandler.Received(1).HandleAsync(
+            Arg.Is<SearchOfficeRequest>(r => r.BuildingId == 5), 
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -402,19 +398,18 @@ public class OfficesControllerTests
         };
 
         var request = new SearchOfficeRequest(Department: "Sales");
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredOfficesHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchOfficeRequest>(r => r.Department == "Sales"), 
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+        await _getFilteredOfficesHandler.Received(1).HandleAsync(
+            Arg.Is<SearchOfficeRequest>(r => r.Department == "Sales"), 
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -435,19 +430,18 @@ public class OfficesControllerTests
         };
 
         var request = new SearchOfficeRequest(LocationCity: "San Francisco");
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredOfficesHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchOfficeRequest>(r => r.LocationCity == "San Francisco"), 
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+        await _getFilteredOfficesHandler.Received(1).HandleAsync(
+            Arg.Is<SearchOfficeRequest>(r => r.LocationCity == "San Francisco"), 
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -467,9 +461,9 @@ public class OfficesControllerTests
         };
 
         var request = new SearchOfficeRequest(PageNumber: 2, PageSize: 5);
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
@@ -496,9 +490,9 @@ public class OfficesControllerTests
         };
 
         var request = new SearchOfficeRequest(SearchTerm: "NonExistent");
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
@@ -524,18 +518,16 @@ public class OfficesControllerTests
 
         var cts = new CancellationTokenSource();
         var request = new SearchOfficeRequest();
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, cts.Token))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, cts.Token)
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, cts.Token);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredOfficesHandlerMock.Verify(
-            h => h.HandleAsync(request, cts.Token), 
-            Times.Once);
+        await _getFilteredOfficesHandler.Received(1).HandleAsync(request, cts.Token);
     }
 
     [Fact]
@@ -565,25 +557,24 @@ public class OfficesControllerTests
             PageNumber: 1,
             PageSize: 10);
 
-        _getFilteredOfficesHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredOfficesHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetFilteredOffices(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredOfficesHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchOfficeRequest>(r =>
+        await _getFilteredOfficesHandler.Received(1).HandleAsync(
+            Arg.Is<SearchOfficeRequest>(r =>
                 r.SearchTerm == "Executive" &&
                 r.BuildingId == 5 &&
                 r.Department == "Management" &&
                 r.LocationCity == "San Francisco" &&
                 r.OfficeType == "Executive Suite" &&
                 r.IsActive == true),
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+            Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -620,3 +611,4 @@ public class OfficesControllerTests
 
     #endregion
 }
+

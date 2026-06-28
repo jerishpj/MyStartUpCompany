@@ -5,6 +5,7 @@ using MyStartUpCompany.Worker.Services;
 using MyStartUpCompany.Worker.Tests.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
+using NSubstitute;
 
 namespace MyStartUpCompany.Worker.Tests.Services
 {
@@ -14,8 +15,8 @@ namespace MyStartUpCompany.Worker.Tests.Services
         private readonly AppDbContext _dbContext;
         private readonly AddCompanyEventHandler _handler;
         private readonly CompanyFileProcessorService _processor;
-        private readonly Mock<ILogger<CompanyFileProcessorService>> _loggerMock;
-        private readonly Mock<IHostEnvironment> _environmentMock;
+        private readonly ILogger<CompanyFileProcessorService> _logger;
+        private readonly IHostEnvironment _environment;
 
         public CompanyFileProcessorServiceTests()
         {
@@ -24,14 +25,14 @@ namespace MyStartUpCompany.Worker.Tests.Services
             _dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
 
             var companyRepository = new CompanyRepository(_dbContext);
-            var loggerForHandler = new Mock<ILogger<AddCompanyEventHandler>>().Object;
+            var loggerForHandler = Substitute.For<ILogger<AddCompanyEventHandler>>();
             _handler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
 
-            _loggerMock = new Mock<ILogger<CompanyFileProcessorService>>();
-            _environmentMock = new Mock<IHostEnvironment>();
-            _environmentMock.Setup(e => e.ContentRootPath).Returns(_tempFolderManager.RootPath);
+            _logger = Substitute.For<ILogger<CompanyFileProcessorService>>();
+            _environment = Substitute.For<IHostEnvironment>();
+            _environment.ContentRootPath.Returns(_tempFolderManager.RootPath);
 
-            _processor = new CompanyFileProcessorService(_handler, _loggerMock.Object, _environmentMock.Object);
+            _processor = new CompanyFileProcessorService(_handler, _logger, _environment);
         }
 
         public void Dispose()

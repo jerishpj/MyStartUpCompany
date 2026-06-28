@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using NSubstitute;
 
 namespace MyStartUpCompany.Observability.Tests.Integration;
 
@@ -26,9 +27,9 @@ public class ObservabilityServiceCollectionTests
 
     private static IHostEnvironment CreateHostEnvironment()
     {
-        var environment = new Moq.Mock<IHostEnvironment>();
-        environment.Setup(e => e.EnvironmentName).Returns("test");
-        return environment.Object;
+        var environment = Substitute.For<IHostEnvironment>();
+        environment.EnvironmentName.Returns("test");
+        return environment;
     }
 
     [Fact]

@@ -76,7 +76,7 @@ public class CompanyBuilder
     /// </summary>
     public CompanyBuilder AsAcmeCorporation()
     {
-        _id = null; // Let database generate ID
+        _id = 1;
         _name = "Acme Corporation";
         _description = "Leading provider of innovative solutions";
         _address = "123 Main Street";
@@ -93,7 +93,7 @@ public class CompanyBuilder
     /// </summary>
     public CompanyBuilder AsTechVisionInc()
     {
-        _id = null; // Let database generate ID
+        _id = 2;
         _name = "TechVision Inc";
         _description = "Software development company";
         _address = "456 Tech Avenue";
@@ -110,7 +110,7 @@ public class CompanyBuilder
     /// </summary>
     public CompanyBuilder AsGlobalSystemsLtd()
     {
-        _id = null; // Let database generate ID
+        _id = 3;
         _name = "Global Systems Ltd";
         _description = "Enterprise solutions provider";
         _address = "789 Business Blvd";

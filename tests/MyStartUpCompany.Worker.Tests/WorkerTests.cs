@@ -6,54 +6,55 @@ using MyStartUpCompany.Worker.Tests.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NSubstitute;
 
 namespace MyStartUpCompany.Worker.Tests
 {
     public class WorkerTests
     {
-        private readonly Mock<ILogger<Worker>> _loggerMock;
-        private readonly Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
-        private readonly Mock<IServiceScope> _serviceScopeMock;
-        private readonly Mock<IServiceProvider> _serviceProviderMock;
+        private readonly ILogger<Worker> _logger;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IServiceScope _serviceScope;
+        private readonly IServiceProvider _serviceProvider;
         private readonly Worker _worker;
         private readonly TempFolderManager _tempFolderManager;
 
         public WorkerTests()
         {
-            _loggerMock = new Mock<ILogger<Worker>>();
-            _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
-            _serviceScopeMock = new Mock<IServiceScope>();
-            _serviceProviderMock = new Mock<IServiceProvider>();
+            _logger = Substitute.For<ILogger<Worker>>();
+            _serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
+            _serviceScope = Substitute.For<IServiceScope>();
+            _serviceProvider = Substitute.For<IServiceProvider>();
             _tempFolderManager = new TempFolderManager();
 
             // Create real handler with in-memory database
             var uniqueDbName = Guid.NewGuid().ToString();
             var dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
             var companyRepository = new CompanyRepository(dbContext);
-            var loggerForHandler = new Mock<ILogger<AddCompanyEventHandler>>().Object;
+            var loggerForHandler = Substitute.For<ILogger<AddCompanyEventHandler>>();
             var realHandler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
 
             // Create file processor with proper environment setup
-            var environmentMock = new Mock<IHostEnvironment>();
-            environmentMock.Setup(e => e.ContentRootPath).Returns(_tempFolderManager.RootPath);
+            var environment = Substitute.For<IHostEnvironment>();
+            environment.ContentRootPath.Returns(_tempFolderManager.RootPath);
 
-            var fileProcessorLoggerMock = new Mock<ILogger<CompanyFileProcessorService>>().Object;
-            var fileProcessor = new CompanyFileProcessorService(realHandler, fileProcessorLoggerMock, environmentMock.Object);
+            var fileProcessorLogger = Substitute.For<ILogger<CompanyFileProcessorService>>();
+            var fileProcessor = new CompanyFileProcessorService(realHandler, fileProcessorLogger, environment);
 
             // Setup the chain of dependencies
-            _serviceScopeFactoryMock
-                .Setup(x => x.CreateScope())
-                .Returns(_serviceScopeMock.Object);
+            _serviceScopeFactory
+                .CreateScope()
+                .Returns(_serviceScope);
 
-            _serviceScopeMock
-                .Setup(x => x.ServiceProvider)
-                .Returns(_serviceProviderMock.Object);
+            _serviceScope
+                .ServiceProvider
+                .Returns(_serviceProvider);
 
-            _serviceProviderMock
-                .Setup(x => x.GetService(typeof(CompanyFileProcessorService)))
+            _serviceProvider
+                .GetService(typeof(CompanyFileProcessorService))
                 .Returns(fileProcessor);
 
-            _worker = new Worker(_loggerMock.Object, _serviceScopeFactoryMock.Object);
+            _worker = new Worker(_logger, _serviceScopeFactory);
         }
 
         public void Dispose()
@@ -72,7 +73,7 @@ namespace MyStartUpCompany.Worker.Tests
         public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
         {
             // Act & Assert - Constructor doesn't validate null args
-            FluentActions.Invoking(() => new Worker(null!, _serviceScopeFactoryMock.Object))
+            FluentActions.Invoking(() => new Worker(null!, _serviceScopeFactory))
                 .Should()
                 .NotThrow();
         }
@@ -81,7 +82,7 @@ namespace MyStartUpCompany.Worker.Tests
         public void Constructor_WithNullServiceScopeFactory_ShouldThrowArgumentNullException()
         {
             // Act & Assert - Constructor doesn't validate null args
-            FluentActions.Invoking(() => new Worker(_loggerMock.Object, null!))
+            FluentActions.Invoking(() => new Worker(_logger, null!))
                 .Should()
                 .NotThrow();
         }

@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using MyStartUpCompany.Api.Features.Buildings;
 using MyStartUpCompany.Api.Features.Buildings.Models;
 using MyStartUpCompany.Api.Features.Buildings.Queries;
@@ -17,24 +17,24 @@ namespace MyStartUpCompany.Api.Tests.Features.Buildings;
 /// </summary>
 public class BuildingsControllerTests
 {
-    private readonly Mock<IGetBuildingQueryHandler> _getBuildingHandlerMock;
-    private readonly Mock<IGetAllBuildingsQueryHandler> _getAllBuildingsHandlerMock;
-    private readonly Mock<IGetFilteredBuildingsQueryHandler> _getFilteredBuildingsHandlerMock;
-    private readonly Mock<ILogger<BuildingsController>> _loggerMock;
+    private readonly IGetBuildingQueryHandler _getBuildingHandler;
+    private readonly IGetAllBuildingsQueryHandler _getAllBuildingsHandler;
+    private readonly IGetFilteredBuildingsQueryHandler _getFilteredBuildingsHandler;
+    private readonly ILogger<BuildingsController> _logger;
     private readonly BuildingsController _controller;
 
     public BuildingsControllerTests()
     {
-        _getBuildingHandlerMock = new Mock<IGetBuildingQueryHandler>();
-        _getAllBuildingsHandlerMock = new Mock<IGetAllBuildingsQueryHandler>();
-        _getFilteredBuildingsHandlerMock = new Mock<IGetFilteredBuildingsQueryHandler>();
-        _loggerMock = new Mock<ILogger<BuildingsController>>();
+        _getBuildingHandler = Substitute.For<IGetBuildingQueryHandler>();
+        _getAllBuildingsHandler = Substitute.For<IGetAllBuildingsQueryHandler>();
+        _getFilteredBuildingsHandler = Substitute.For<IGetFilteredBuildingsQueryHandler>();
+        _logger = Substitute.For<ILogger<BuildingsController>>();
 
         _controller = new BuildingsController(
-            _getBuildingHandlerMock.Object,
-            _getAllBuildingsHandlerMock.Object,
-            _getFilteredBuildingsHandlerMock.Object,
-            _loggerMock.Object);
+            _getBuildingHandler,
+            _getAllBuildingsHandler,
+            _getFilteredBuildingsHandler,
+            _logger);
     }
 
     #region GetBuilding Tests
@@ -50,9 +50,9 @@ public class BuildingsControllerTests
             .Build();
         var response = MapToResponse(buildingResponse);
 
-        _getBuildingHandlerMock
-            .Setup(h => h.HandleAsync(buildingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
+        _getBuildingHandler
+            .HandleAsync(buildingId, Arg.Any<CancellationToken>())
+            .Returns(response);
 
         // Act
         var result = await _controller.GetBuilding(buildingId, CancellationToken.None);
@@ -61,30 +61,30 @@ public class BuildingsControllerTests
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
         okResult?.Value.Should().BeEquivalentTo(response);
-        _getBuildingHandlerMock.Verify(h => h.HandleAsync(buildingId, It.IsAny<CancellationToken>()), Times.Once);
+        await _getBuildingHandler.Received(1).HandleAsync(buildingId, Arg.Any<CancellationToken>());
     }
 
-    [Fact]
+     [Fact]
     public async Task GetBuilding_WithNonExistentId_ReturnsNotFound()
     {
         // Arrange
         var buildingId = 9999;
-        _getBuildingHandlerMock
-            .Setup(h => h.HandleAsync(buildingId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NotFoundException("Building", buildingId));
+        _getBuildingHandler
+            .HandleAsync(buildingId, Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromException<BuildingResponse>(new NotFoundException("Building", buildingId)));
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetBuilding(buildingId, CancellationToken.None));
     }
 
-    [Fact]
+     [Fact]
     public async Task GetBuilding_WithZeroId_ReturnsNotFound()
     {
         // Arrange
         var buildingId = 0;
-        _getBuildingHandlerMock
-            .Setup(h => h.HandleAsync(buildingId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NotFoundException("Building", buildingId));
+        _getBuildingHandler
+            .HandleAsync(buildingId, Arg.Any<CancellationToken>())
+            .Returns(x => Task.FromException<BuildingResponse>(new NotFoundException("Building", buildingId)));
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _controller.GetBuilding(buildingId, CancellationToken.None));
@@ -102,16 +102,16 @@ public class BuildingsControllerTests
         var response = MapToResponse(buildingResponse);
 
         var cts = new CancellationTokenSource();
-        _getBuildingHandlerMock
-            .Setup(h => h.HandleAsync(buildingId, cts.Token))
-            .ReturnsAsync(response);
+        _getBuildingHandler
+            .HandleAsync(buildingId, cts.Token)
+            .Returns(response);
 
         // Act
         var result = await _controller.GetBuilding(buildingId, cts.Token);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getBuildingHandlerMock.Verify(h => h.HandleAsync(buildingId, cts.Token), Times.Once);
+        await _getBuildingHandler.Received(1).HandleAsync(buildingId, cts.Token);
     }
 
     [Fact]
@@ -125,9 +125,9 @@ public class BuildingsControllerTests
             .Build();
         var response = MapToResponse(buildingResponse);
 
-        _getBuildingHandlerMock
-            .Setup(h => h.HandleAsync(buildingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
+        _getBuildingHandler
+            .HandleAsync(buildingId, Arg.Any<CancellationToken>())
+            .Returns(response);
 
         // Act
         var result = await _controller.GetBuilding(buildingId, CancellationToken.None);
@@ -150,9 +150,9 @@ public class BuildingsControllerTests
         var building2 = new BuildingBuilder().WithId(2).AsHistoricBuilding().Build();
         var buildings = new[] { MapToResponse(building1), MapToResponse(building2) };
 
-        _getAllBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(buildings);
+        _getAllBuildingsHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(buildings);
 
         // Act
         var result = await _controller.GetAllBuildings(CancellationToken.None);
@@ -169,9 +169,9 @@ public class BuildingsControllerTests
     {
         // Arrange
         var emptyList = Array.Empty<BuildingResponse>();
-        _getAllBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(emptyList);
+        _getAllBuildingsHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(emptyList);
 
         // Act
         var result = await _controller.GetAllBuildings(CancellationToken.None);
@@ -191,16 +191,16 @@ public class BuildingsControllerTests
         var buildings = new[] { MapToResponse(building) };
 
         var cts = new CancellationTokenSource();
-        _getAllBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(cts.Token))
-            .ReturnsAsync(buildings);
+        _getAllBuildingsHandler
+            .HandleAsync(cts.Token)
+            .Returns(buildings);
 
         // Act
         var result = await _controller.GetAllBuildings(cts.Token);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getAllBuildingsHandlerMock.Verify(h => h.HandleAsync(cts.Token), Times.Once);
+        await _getAllBuildingsHandler.Received(1).HandleAsync(cts.Token);
     }
 
     [Fact]
@@ -217,9 +217,9 @@ public class BuildingsControllerTests
             MapToResponse(building1)   // Zebra last
         };
 
-        _getAllBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(buildings);
+        _getAllBuildingsHandler
+            .HandleAsync(Arg.Any<CancellationToken>())
+            .Returns(buildings);
 
         // Act
         var result = await _controller.GetAllBuildings(CancellationToken.None);
@@ -253,9 +253,9 @@ public class BuildingsControllerTests
         };
 
         var request = new SearchBuildingRequest();
-        _getFilteredBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(It.IsAny<SearchBuildingRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredBuildingsHandler
+            .HandleAsync(Arg.Any<SearchBuildingRequest>(), Arg.Any<CancellationToken>())
+            .Returns(pagedResult);
 
         // Act
         var result = await _controller.GetFilteredBuildings(request, CancellationToken.None);
@@ -285,19 +285,18 @@ public class BuildingsControllerTests
         };
 
         var request = new SearchBuildingRequest(SearchTerm: "Modern");
-        _getFilteredBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredBuildingsHandler
+            .HandleAsync(Arg.Is<SearchBuildingRequest>(r => r.SearchTerm == "Modern"), Arg.Any<CancellationToken>())
+            .Returns(pagedResult);
 
         // Act
         var result = await _controller.GetFilteredBuildings(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredBuildingsHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchBuildingRequest>(r => r.SearchTerm == "Modern"), 
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+        await _getFilteredBuildingsHandler.Received(1).HandleAsync(
+            Arg.Is<SearchBuildingRequest>(r => r.SearchTerm == "Modern"), 
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -318,19 +317,18 @@ public class BuildingsControllerTests
         };
 
         var request = new SearchBuildingRequest(LocationId: 5);
-        _getFilteredBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredBuildingsHandler
+            .HandleAsync(Arg.Is<SearchBuildingRequest>(r => r.LocationId == 5), Arg.Any<CancellationToken>())
+            .Returns(pagedResult);
 
         // Act
         var result = await _controller.GetFilteredBuildings(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredBuildingsHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchBuildingRequest>(r => r.LocationId == 5), 
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+        await _getFilteredBuildingsHandler.Received(1).HandleAsync(
+            Arg.Is<SearchBuildingRequest>(r => r.LocationId == 5), 
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -350,9 +348,9 @@ public class BuildingsControllerTests
         };
 
         var request = new SearchBuildingRequest(PageNumber: 2, PageSize: 5);
-        _getFilteredBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredBuildingsHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(pagedResult);
 
         // Act
         var result = await _controller.GetFilteredBuildings(request, CancellationToken.None);
@@ -379,9 +377,9 @@ public class BuildingsControllerTests
         };
 
         var request = new SearchBuildingRequest(SearchTerm: "NonExistent");
-        _getFilteredBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredBuildingsHandler
+            .HandleAsync(request, Arg.Any<CancellationToken>())
+            .Returns(pagedResult);
 
         // Act
         var result = await _controller.GetFilteredBuildings(request, CancellationToken.None);
@@ -407,18 +405,16 @@ public class BuildingsControllerTests
 
         var cts = new CancellationTokenSource();
         var request = new SearchBuildingRequest();
-        _getFilteredBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(request, cts.Token))
-            .ReturnsAsync(pagedResult);
+        _getFilteredBuildingsHandler
+            .HandleAsync(request, cts.Token)
+            .Returns(pagedResult);
 
         // Act
         var result = await _controller.GetFilteredBuildings(request, cts.Token);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredBuildingsHandlerMock.Verify(
-            h => h.HandleAsync(request, cts.Token), 
-            Times.Once);
+        await _getFilteredBuildingsHandler.Received(1).HandleAsync(request, cts.Token);
     }
 
     [Fact]
@@ -446,23 +442,22 @@ public class BuildingsControllerTests
             PageNumber: 1,
             PageSize: 10);
 
-        _getFilteredBuildingsHandlerMock
-            .Setup(h => h.HandleAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+        _getFilteredBuildingsHandler
+            .HandleAsync(Arg.Any<SearchBuildingRequest>(), Arg.Any<CancellationToken>())
+            .Returns(pagedResult);
 
         // Act
         var result = await _controller.GetFilteredBuildings(request, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        _getFilteredBuildingsHandlerMock.Verify(
-            h => h.HandleAsync(It.Is<SearchBuildingRequest>(r =>
+        await _getFilteredBuildingsHandler.Received(1).HandleAsync(
+            Arg.Is<SearchBuildingRequest>(r =>
                 r.SearchTerm == "Modern" &&
                 r.LocationId == 5 &&
                 r.BuildingCode == "MOT-001" &&
                 r.IsActive == true),
-                It.IsAny<CancellationToken>()), 
-            Times.Once);
+            Arg.Any<CancellationToken>());
     }
 
     #endregion

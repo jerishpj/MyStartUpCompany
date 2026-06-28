@@ -13,12 +13,27 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
     {
         private readonly AppDbContext _dbContext;
         private readonly IProjectRepository _repository;
+        private readonly int _testCompanyId;
 
         public ProjectRepositoryUpsertTests()
         {
             var uniqueDbName = Guid.NewGuid().ToString();
             _dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
             _repository = new ProjectRepository(_dbContext);
+
+            // Create a test company for foreign key relationship
+            var testCompany = new Company
+            {
+                Name = "Test Company",
+                Address = "123 Test St",
+                City = "Test City",
+                PostalCode = "12345",
+                Country = "USA",
+                Phone = "555-0100"
+            };
+            _dbContext.Companies.Add(testCompany);
+            _dbContext.SaveChanges();
+            _testCompanyId = testCompany.Id;
         }
 
         public void Dispose()
@@ -36,7 +51,8 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
                 Name = "Cloud Migration",
                 Code = "CM",
                 Location = "San Francisco",
-                Type = ProjectType.CloudService
+                Type = ProjectType.CloudService,
+                CompanyId = _testCompanyId
             };
 
             // Act
@@ -58,7 +74,8 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
                 Name = "Original Name",
                 Code = "ON",
                 Location = "Boston",
-                Type = ProjectType.CustomerSupport
+                Type = ProjectType.CustomerSupport,
+                CompanyId = _testCompanyId
             };
 
             await _repository.UpsertAsync(originalProject);
@@ -70,7 +87,8 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
                 Name = "Updated Name",
                 Code = "UN",
                 Location = "New York",
-                Type = ProjectType.CustomerSupport
+                Type = ProjectType.CustomerSupport,
+                CompanyId = _testCompanyId
             };
 
             // Act
@@ -91,7 +109,8 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
                 Name = "Project Alpha",
                 Code = "PA",
                 Location = "SF",
-                Type = ProjectType.CloudService
+                Type = ProjectType.CloudService,
+                CompanyId = _testCompanyId
             };
 
             var project2 = new Project
@@ -100,7 +119,8 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
                 Name = "Project Beta",
                 Code = "PB",
                 Location = "LA",
-                Type = ProjectType.CloudService
+                Type = ProjectType.CloudService,
+                CompanyId = _testCompanyId
             };
 
             // Act

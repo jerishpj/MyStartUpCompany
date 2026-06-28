@@ -55,14 +55,12 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }),
                 v => System.Text.Json.JsonSerializer.Deserialize<Entities.ValueObjects.ProjectDetails>(v, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Entities.ValueObjects.ProjectDetails { Status = "Planning" })
-            .HasColumnType("nvarchar(max)")
             .HasComment("Project details stored as JSON: Budget, Status, Dates, Team, Tags, Metrics, Metadata");
 
         // ========== TIMESTAMP COLUMNS ==========
 
         builder.Property(p => p.CreatedAt)
             .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()")
             .HasComment("When the project record was created");
 
         builder.Property(p => p.UpdatedAt)

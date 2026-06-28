@@ -18,6 +18,48 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
             var uniqueDbName = Guid.NewGuid().ToString();
             _dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
             _repository = new BuildingRepository(_dbContext);
+
+            // Create required parent entities for foreign key constraints
+            SeedTestData();
+        }
+
+        private void SeedTestData()
+        {
+            // Create a test company (required for Location)
+            var company = new Company
+            {
+                Name = "Test Company",
+                Address = "123 Test St",
+                City = "Test City",
+                PostalCode = "12345",
+                Country = "USA",
+                Phone = "555-0000"
+            };
+            _dbContext.Companies.Add(company);
+            _dbContext.SaveChanges();
+
+            // Create test locations (required for Building)
+            var location1 = new Location
+            {
+                CompanyId = company.Id,
+                Name = "Location 1",
+                Address = "100 Location St",
+                City = "Test City",
+                PostalCode = "12345",
+                Country = "USA"
+            };
+            var location2 = new Location
+            {
+                CompanyId = company.Id,
+                Name = "Location 2",
+                Address = "200 Location St",
+                City = "Test City",
+                PostalCode = "12345",
+                Country = "USA"
+            };
+            _dbContext.Locations.Add(location1);
+            _dbContext.Locations.Add(location2);
+            _dbContext.SaveChanges();
         }
 
         public void Dispose()

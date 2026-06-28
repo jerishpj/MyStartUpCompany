@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using MyStartUpCompany.Api.Features.Offices.Queries;
 using MyStartUpCompany.Api.Features.Offices.Models;
 using MyStartUpCompany.Api.Tests.Shared.TestData.Builders;
@@ -17,7 +17,7 @@ namespace MyStartUpCompany.Api.Tests.Features.Offices.Queries;
 public class GetOfficeQueryHandlerTests
 {
     private readonly AppDbContext _dbContext;
-    private readonly Mock<ILogger<GetOfficeQueryHandler>> _loggerMock;
+    private readonly ILogger<GetOfficeQueryHandler> _logger;
     private readonly GetOfficeQueryHandler _handler;
 
     public GetOfficeQueryHandlerTests()
@@ -27,8 +27,8 @@ public class GetOfficeQueryHandlerTests
             .Options;
 
         _dbContext = new AppDbContext(options);
-        _loggerMock = new Mock<ILogger<GetOfficeQueryHandler>>();
-        _handler = new GetOfficeQueryHandler(_dbContext, _loggerMock.Object);
+        _logger = Substitute.For<ILogger<GetOfficeQueryHandler>>();
+        _handler = new GetOfficeQueryHandler(_dbContext, _logger);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class GetOfficeQueryHandlerTests
 public class GetAllOfficesQueryHandlerTests
 {
     private readonly AppDbContext _dbContext;
-    private readonly Mock<ILogger<GetAllOfficesQueryHandler>> _loggerMock;
+    private readonly ILogger<GetAllOfficesQueryHandler> _logger;
     private readonly GetAllOfficesQueryHandler _handler;
 
     public GetAllOfficesQueryHandlerTests()
@@ -207,12 +207,12 @@ public class GetAllOfficesQueryHandlerTests
             .UseInMemoryDatabase(databaseName: $"AllOfficesTest_{Guid.NewGuid()}")
             .Options;
 
-        _dbContext = new AppDbContext(options);
-        _loggerMock = new Mock<ILogger<GetAllOfficesQueryHandler>>();
-        _handler = new GetAllOfficesQueryHandler(_dbContext, _loggerMock.Object);
-    }
+             _dbContext = new AppDbContext(options);
+            _logger = Substitute.For<ILogger<GetAllOfficesQueryHandler>>();
+            _handler = new GetAllOfficesQueryHandler(_dbContext, _logger);
+        }
 
-    [Fact]
+        [Fact]
     public async Task HandleAsync_WithEmptyDatabase_ReturnsEmptyCollection()
     {
         // Act
@@ -330,7 +330,7 @@ public class GetAllOfficesQueryHandlerTests
 public class GetFilteredOfficesQueryHandlerTests
 {
     private readonly AppDbContext _dbContext;
-    private readonly Mock<ILogger<GetFilteredOfficesQueryHandler>> _loggerMock;
+    private readonly ILogger<GetFilteredOfficesQueryHandler> _logger;
     private readonly GetFilteredOfficesQueryHandler _handler;
 
     public GetFilteredOfficesQueryHandlerTests()
@@ -340,8 +340,8 @@ public class GetFilteredOfficesQueryHandlerTests
             .Options;
 
         _dbContext = new AppDbContext(options);
-        _loggerMock = new Mock<ILogger<GetFilteredOfficesQueryHandler>>();
-        _handler = new GetFilteredOfficesQueryHandler(_dbContext, _loggerMock.Object);
+        _logger = Substitute.For<ILogger<GetFilteredOfficesQueryHandler>>();
+        _handler = new GetFilteredOfficesQueryHandler(_dbContext, _logger);
     }
 
     [Fact]

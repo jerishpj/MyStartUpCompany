@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using MyStartUpCompany.Api.Features.Buildings.Queries;
 using MyStartUpCompany.Api.Features.Buildings.Models;
 using MyStartUpCompany.Api.Tests.Shared.TestData.Builders;
@@ -18,7 +18,7 @@ namespace MyStartUpCompany.Api.Tests.Features.Buildings.Queries;
 public class GetBuildingQueryHandlerTests
 {
     private readonly AppDbContext _dbContext;
-    private readonly Mock<ILogger<GetBuildingQueryHandler>> _loggerMock;
+    private readonly ILogger<GetBuildingQueryHandler> _logger;
     private readonly GetBuildingQueryHandler _handler;
 
     public GetBuildingQueryHandlerTests()
@@ -29,8 +29,8 @@ public class GetBuildingQueryHandlerTests
             .Options;
 
         _dbContext = new AppDbContext(options);
-        _loggerMock = new Mock<ILogger<GetBuildingQueryHandler>>();
-        _handler = new GetBuildingQueryHandler(_dbContext, _loggerMock.Object);
+        _logger = Substitute.For<ILogger<GetBuildingQueryHandler>>();
+        _handler = new GetBuildingQueryHandler(_dbContext, _logger);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class GetBuildingQueryHandlerTests
 public class GetAllBuildingsQueryHandlerTests
 {
     private readonly AppDbContext _dbContext;
-    private readonly Mock<ILogger<GetAllBuildingsQueryHandler>> _loggerMock;
+    private readonly ILogger<GetAllBuildingsQueryHandler> _logger;
     private readonly GetAllBuildingsQueryHandler _handler;
 
     public GetAllBuildingsQueryHandlerTests()
@@ -175,14 +175,14 @@ public class GetAllBuildingsQueryHandlerTests
             .UseInMemoryDatabase(databaseName: $"AllBuildingsTest_{Guid.NewGuid()}")
             .Options;
 
-        _dbContext = new AppDbContext(options);
-        _loggerMock = new Mock<ILogger<GetAllBuildingsQueryHandler>>();
-        _handler = new GetAllBuildingsQueryHandler(_dbContext, _loggerMock.Object);
-    }
+             _dbContext = new AppDbContext(options);
+            _logger = Substitute.For<ILogger<GetAllBuildingsQueryHandler>>();
+            _handler = new GetAllBuildingsQueryHandler(_dbContext, _logger);
+        }
 
-    [Fact]
-    public async Task HandleAsync_WithEmptyDatabase_ReturnsEmptyCollection()
-    {
+        [Fact]
+        public async Task HandleAsync_WithEmptyDatabase_ReturnsEmptyCollection()
+        {
         // Act
         var result = await _handler.HandleAsync();
 
@@ -294,7 +294,7 @@ public class GetAllBuildingsQueryHandlerTests
 public class GetFilteredBuildingsQueryHandlerTests
 {
     private readonly AppDbContext _dbContext;
-    private readonly Mock<ILogger<GetFilteredBuildingsQueryHandler>> _loggerMock;
+    private readonly ILogger<GetFilteredBuildingsQueryHandler> _logger;
     private readonly GetFilteredBuildingsQueryHandler _handler;
 
     public GetFilteredBuildingsQueryHandlerTests()
@@ -304,8 +304,8 @@ public class GetFilteredBuildingsQueryHandlerTests
             .Options;
 
         _dbContext = new AppDbContext(options);
-        _loggerMock = new Mock<ILogger<GetFilteredBuildingsQueryHandler>>();
-        _handler = new GetFilteredBuildingsQueryHandler(_dbContext, _loggerMock.Object);
+        _logger = Substitute.For<ILogger<GetFilteredBuildingsQueryHandler>>();
+        _handler = new GetFilteredBuildingsQueryHandler(_dbContext, _logger);
     }
 
     [Fact]

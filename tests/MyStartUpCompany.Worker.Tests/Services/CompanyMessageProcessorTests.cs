@@ -4,6 +4,7 @@ using MyStartUpCompany.Worker.Handlers.AddCompany;
 using MyStartUpCompany.Worker.Services;
 using MyStartUpCompany.Worker.Tests.Utilities;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
 
 namespace MyStartUpCompany.Worker.Tests.Services
 {
@@ -22,10 +23,10 @@ namespace MyStartUpCompany.Worker.Tests.Services
 
             // Create real AddCompanyEventHandler instance
             var companyRepository = new CompanyRepository(_dbContext);
-            var loggerForHandler = new Mock<ILogger<AddCompanyEventHandler>>().Object;
+            var loggerForHandler = Substitute.For<ILogger<AddCompanyEventHandler>>();
             _handler = new AddCompanyEventHandler(companyRepository, loggerForHandler);
 
-            _loggerMock = new Mock<ILogger<CompanyMessageProcessor>>().Object;
+            _loggerMock = Substitute.For<ILogger<CompanyMessageProcessor>>();
             _processor = new CompanyMessageProcessor(_handler, _loggerMock);
         }
 

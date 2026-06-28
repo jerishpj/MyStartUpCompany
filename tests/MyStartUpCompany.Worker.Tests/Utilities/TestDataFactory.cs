@@ -6,53 +6,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace MyStartUpCompany.Worker.Tests.Utilities
 {
     /// <summary>
-    /// In-memory test context that disables seed data for isolated testing.
+    /// In-memory test context that inherits AppDbContext for testing.
+    /// Seed data handling is left to the parent OnModelCreating.
     /// </summary>
     internal class TestAppDbContext : AppDbContext
     {
         public TestAppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            // Only call DbContext's base implementation, NOT AppDbContext's which applies seed data
-            base.OnModelCreating(modelBuilder);
-
-            // Manually configure entities without seed data
-            ConfigureEntitiesForTesting(modelBuilder);
-        }
-
-        private static void ConfigureEntitiesForTesting(ModelBuilder modelBuilder)
-        {
-            // Configure Company entity without seed data
-            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Company>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Name).IsRequired();
-                entity.Property(e => e.Address).IsRequired();
-                entity.Property(e => e.City).IsRequired();
-                entity.Property(e => e.PostalCode).IsRequired();
-                entity.Property(e => e.Country).IsRequired();
-                entity.Property(e => e.Phone).IsRequired();
-            });
-
-            // Configure Employee entity without seed data
-            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Employee>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
-
-            // Configure Project entity without seed data
-            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.Project>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
-
-            // Configure ProjectTypeReference entity without seed data
-            modelBuilder.Entity<MyStartUpCompany.Persistence.Entities.ProjectTypeReference>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
-        }
     }
 
     /// <summary>
@@ -87,27 +46,50 @@ namespace MyStartUpCompany.Worker.Tests.Utilities
         }
 
         /// <summary>
-        /// Creates an in-memory DbContextOptions for AppDbContext testing.
+        /// Creates SQLite in-memory DbContextOptions for AppDbContext testing.
         /// </summary>
         public static DbContextOptions<AppDbContext> CreateInMemoryDbContextOptions(string databaseName)
         {
+            var connectionString = $"Data Source=file:{databaseName}?mode=memory&cache=private;";
             return new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName)
+                .UseSqlite(connectionString)
                 .Options;
         }
 
         /// <summary>
-        /// Creates a fresh AppDbContext with in-memory database for testing (no seed data).
+        /// Creates a fresh AppDbContext with SQLite in-memory database for testing (no seed data).
         /// </summary>
         public static AppDbContext CreateInMemoryAppDbContext(string databaseName)
         {
+            var connectionString = $"Data Source=file:{databaseName}?mode=memory&cache=shared;";
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName)
+                .UseSqlite(connectionString)
                 .Options;
             var context = new TestAppDbContext(options);
+
+            // Ensure schema is created
             context.Database.EnsureCreated();
 
-            // Clear any seeded data that might have been added by OnModelCreating
+            // Clear any seeded data that was applied by OnModelCreating
+            // Must delete in order: child entities first due to foreign key constraints
+            var offices = context.Offices.ToList();
+            if (offices.Any())
+            {
+                context.Offices.RemoveRange(offices);
+            }
+
+            var buildings = context.Buildings.ToList();
+            if (buildings.Any())
+            {
+                context.Buildings.RemoveRange(buildings);
+            }
+
+            var locations = context.Locations.ToList();
+            if (locations.Any())
+            {
+                context.Locations.RemoveRange(locations);
+            }
+
             var companies = context.Companies.ToList();
             if (companies.Any())
             {

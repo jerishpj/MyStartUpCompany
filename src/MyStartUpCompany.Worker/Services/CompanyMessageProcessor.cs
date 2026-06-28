@@ -111,21 +111,32 @@ namespace MyStartUpCompany.Worker.Services
             // Process the company
             try
             {
-                var success = await _handler.HandleAsync(companyDto, cancellationToken);
+                var upsertResult = await _handler.HandleWithResultAsync(companyDto, cancellationToken);
 
-                if (success)
+                if (upsertResult.IsSuccess)
                 {
-                    _logger.LogInformation(
-                        "Successfully processed company '{CompanyName}' from source '{Source}'",
-                        companyDto.Name, sourceIdentifier);
-                    return CompanyProcessingResult.Success();
+                    // Determine if this was an insert or duplicate (update)
+                    if (upsertResult.IsInsert)
+                    {
+                        _logger.LogInformation(
+                            "Successfully processed company '{CompanyName}' from source '{Source}'",
+                            companyDto.Name, sourceIdentifier);
+                        return CompanyProcessingResult.Success();
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Duplicate company detected '{CompanyName}' from source '{Source}'",
+                            companyDto.Name, sourceIdentifier);
+                        return CompanyProcessingResult.Duplicate();
+                    }
                 }
                 else
                 {
                     _logger.LogWarning(
-                        "Company '{CompanyName}' from source '{Source}' was not added (likely duplicate)",
+                        "Company '{CompanyName}' from source '{Source}' could not be processed",
                         companyDto.Name, sourceIdentifier);
-                    return CompanyProcessingResult.Duplicate();
+                    return CompanyProcessingResult.Invalid("Company could not be added to the database");
                 }
             }
             catch (Exception ex)

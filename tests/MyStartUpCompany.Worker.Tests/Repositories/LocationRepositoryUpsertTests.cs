@@ -12,12 +12,47 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
     {
         private readonly AppDbContext _dbContext;
         private readonly ILocationRepository _repository;
+        private int _company1Id;
+        private int _company2Id;
 
         public LocationRepositoryUpsertTests()
         {
             var uniqueDbName = Guid.NewGuid().ToString();
             _dbContext = TestDataFactory.CreateInMemoryAppDbContext(uniqueDbName);
             _repository = new LocationRepository(_dbContext);
+
+            // Create required parent entities for foreign key constraints
+            SeedTestData();
+        }
+
+        private void SeedTestData()
+        {
+            // Create test companies (required for Location)
+            var company1 = new Company
+            {
+                Name = "Test Company 1",
+                Address = "123 Test St",
+                City = "Test City",
+                PostalCode = "12345",
+                Country = "USA",
+                Phone = "555-0001"
+            };
+            var company2 = new Company
+            {
+                Name = "Test Company 2",
+                Address = "456 Test St",
+                City = "Test City",
+                PostalCode = "12345",
+                Country = "USA",
+                Phone = "555-0002"
+            };
+            _dbContext.Companies.Add(company1);
+            _dbContext.Companies.Add(company2);
+            _dbContext.SaveChanges();
+
+            // Capture the assigned IDs after SaveChanges
+            _company1Id = company1.Id;
+            _company2Id = company2.Id;
         }
 
         public void Dispose()
@@ -31,7 +66,7 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
             // Arrange
             var location = new Location
             {
-                CompanyId = 1,
+                CompanyId = _company1Id,
                 Name = "Headquarters",
                 Address = "123 Main Street",
                 City = "San Francisco",
@@ -54,7 +89,7 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
             // Arrange
             var originalLocation = new Location
             {
-                CompanyId = 1,
+                CompanyId = _company1Id,
                 Name = "West Coast Office",
                 Address = "456 Market Street",
                 City = "San Francisco",
@@ -67,7 +102,7 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
 
             var updatedLocation = new Location
             {
-                CompanyId = 1,
+                CompanyId = _company1Id,
                 Name = "West Coast Office",
                 Address = "789 Mission Street",
                 City = "Los Angeles",
@@ -90,7 +125,7 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
             // Arrange
             var location1 = new Location
             {
-                CompanyId = 1,
+                CompanyId = _company1Id,
                 Name = "Regional Office",
                 Address = "111 Boston Lane",
                 City = "Boston",
@@ -100,7 +135,7 @@ namespace MyStartUpCompany.Worker.Tests.Repositories
 
             var location2 = new Location
             {
-                CompanyId = 2,
+                CompanyId = _company2Id,
                 Name = "Regional Office",
                 Address = "222 Chicago Avenue",
                 City = "Chicago",

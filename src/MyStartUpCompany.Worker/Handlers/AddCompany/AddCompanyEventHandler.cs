@@ -28,8 +28,25 @@ namespace MyStartUpCompany.Worker.Handlers.AddCompany
         /// <exception cref="Exception">Re-throws any unexpected errors</exception>
         public async Task<bool> HandleAsync(CompanyInputDto companyDto, CancellationToken cancellationToken = default)
         {
+            var result = await HandleWithResultAsync(companyDto, cancellationToken);
+            return result.IsSuccess;
+        }
+
+        /// <summary>
+        /// Handles the addition or update of company information and returns detailed result.
+        /// </summary>
+        /// <param name="companyDto">The company data to add or update</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Detailed result indicating success and whether it was an insert or update</returns>
+        /// <exception cref="Exception">Re-throws any unexpected errors</exception>
+        public async Task<UpsertResult> HandleWithResultAsync(CompanyInputDto companyDto, CancellationToken cancellationToken = default)
+        {
             try
             {
+                // Check if company already exists
+                var existingCompany = await _companyRepository.FindByNameAndAddressAsync(
+                    companyDto.Name, companyDto.Address, cancellationToken);
+
                 // Create company entity from DTO
                 var company = new Company
                 {
@@ -49,25 +66,32 @@ namespace MyStartUpCompany.Worker.Handlers.AddCompany
                 if (upsertedCompany.Id == 0)
                 {
                     _logger.LogWarning("Failed to upsert company '{CompanyName}' - no Id assigned", companyDto.Name);
-                    return false;
+                    return new UpsertResult { IsSuccess = false };
                 }
 
-                // Determine if it was an insert or update based on whether the company already existed
-                var existingCompany = await _companyRepository.FindByNameAndAddressAsync(
-                    companyDto.Name, companyDto.Address, cancellationToken);
-
-                var operation = existingCompany?.Id == upsertedCompany.Id ? "updated" : "added";
+                // Determine if it was an insert or update
+                bool isInsert = existingCompany == null;
+                var operation = isInsert ? "added" : "updated";
                 _logger.LogInformation(
                     "Successfully {Operation} company '{CompanyName}' with Id {CompanyId}",
                     operation, upsertedCompany.Name, upsertedCompany.Id);
 
-                return true;
+                return new UpsertResult { IsSuccess = true, IsInsert = isInsert };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error upserting company '{CompanyName}'", companyDto.Name);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Result of an upsert operation.
+        /// </summary>
+        public class UpsertResult
+        {
+            public bool IsSuccess { get; set; }
+            public bool IsInsert { get; set; }
         }
     }
 }

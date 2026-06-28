@@ -28,7 +28,7 @@ public class OtelEndToEndValidationTests
         // Add HTTP request tags
         activity.SetTag("http.method", "GET");
         activity.SetTag("http.url", "http://localhost:5000/api/companies");
-        activity.SetTag("http.status_code", 200);
+        activity.SetTag("http.status_code", "200");
 
         // Assert
         activity.Tags.Should().HaveCount(3);
