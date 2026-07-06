@@ -1,9 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MyStartUpCompany.Api.Features.Projects.Models;
 
 /// <summary>
 /// Response DTO for a single Project
 /// Presents the complete project data in normal deserialized format
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class ProjectResponse
 {
     /// <summary>

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using MyStartUpCompany.Persistence;
 using MyStartUpCompany.Persistence.Entities;
@@ -8,7 +9,9 @@ namespace MyStartUpCompany.Api.Features.Admin.Utilities;
 /// <summary>
 /// Performance benchmark utility for Office search queries.
 /// Compares denormalized (optimized) vs normalized (join-based) query performance.
+/// Excluded from code coverage as this is an administrative/performance testing tool, not core business logic.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class OfficeSearchBenchmark
 {
     private readonly AppDbContext _dbContext;

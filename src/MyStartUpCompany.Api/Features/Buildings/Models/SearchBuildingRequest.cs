@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MyStartUpCompany.Api.Features.Buildings.Models;
@@ -6,8 +7,10 @@ namespace MyStartUpCompany.Api.Features.Buildings.Models;
 /// <summary>
 /// Search/filter and pagination parameters for building queries
 /// Accepted by GET /api/buildings/search endpoint
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
 [DisplayName("BuildingSearch")]
+[ExcludeFromCodeCoverage]
 public record SearchBuildingRequest(
     string? SearchTerm = null,
     int? LocationId = null,
@@ -47,14 +50,14 @@ public record SearchBuildingRequest(
     public IEnumerable<string>? OfficeCodes { get; init; } = OfficeCodes;
 
     /// <summary>
-    /// Page number (1-based). Defaults to 1 if not provided or invalid.
+    /// Page number (1-based). Validated by SearchBuildingRequestValidator.
     /// </summary>
-    public int PageNumber { get; init; } = ValidatePageNumber(PageNumber);
+    public int PageNumber { get; init; } = PageNumber;
 
     /// <summary>
-    /// Number of items per page. Defaults to 10 if not provided or invalid.
+    /// Number of items per page. Validated by SearchBuildingRequestValidator.
     /// </summary>
-    public int PageSize { get; init; } = ValidatePageSize(PageSize);
+    public int PageSize { get; init; } = PageSize;
 
     /// <summary>
     /// Sort field
@@ -65,21 +68,5 @@ public record SearchBuildingRequest(
     /// Sort order (asc/desc)
     /// </summary>
     public string? SortOrder { get; init; } = SortOrder;
-
-    /// <summary>
-    /// Silently defaults PageNumber to 1 if the provided value is invalid or non-positive.
-    /// </summary>
-    private static int ValidatePageNumber(int pageNumber)
-    {
-        return pageNumber > 0 ? pageNumber : 1;
-    }
-
-    /// <summary>
-    /// Silently defaults PageSize to 10 if the provided value is invalid or non-positive.
-    /// </summary>
-    private static int ValidatePageSize(int pageSize)
-    {
-        return pageSize > 0 ? pageSize : 10;
-    }
 }
 

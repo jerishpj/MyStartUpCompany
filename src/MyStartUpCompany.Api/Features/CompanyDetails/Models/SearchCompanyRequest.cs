@@ -1,12 +1,15 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Models;
 
 /// <summary>
 /// Search/filter and pagination parameters for company queries
 /// Accepted by GET /api/companies/search endpoint
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
 [DisplayName("CompanySearch")]
+[ExcludeFromCodeCoverage]
 public record SearchCompanyRequest(
     string? Region = null,
     string? Country = null,

@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Configuration
 {
     /// <summary>
     /// Configuration options for database connectivity and behavior
+    /// Excluded from code coverage as it is a configuration model tested through services that consume it.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class DatabaseOptions
     {
         /// <summary>

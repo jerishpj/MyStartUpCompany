@@ -1,12 +1,15 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.Offices.Models;
 
 /// <summary>
 /// Search/filter and pagination parameters for office queries
 /// Accepted by GET /api/offices/search endpoint
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
 [DisplayName("OfficeSearch")]
+[ExcludeFromCodeCoverage]
 public record SearchOfficeRequest(
     string? SearchTerm = null,
     int? BuildingId = null,
@@ -72,14 +75,14 @@ public record SearchOfficeRequest(
     public string? LocationCountry { get; init; } = LocationCountry;
 
     /// <summary>
-    /// Page number (1-based). Defaults to 1 if not provided or invalid.
+    /// Page number (1-based). Validated by SearchOfficeRequestValidator.
     /// </summary>
-    public int PageNumber { get; init; } = ValidatePageNumber(PageNumber);
+    public int PageNumber { get; init; } = PageNumber;
 
     /// <summary>
-    /// Number of items per page. Defaults to 10 if not provided or invalid.
+    /// Number of items per page. Validated by SearchOfficeRequestValidator.
     /// </summary>
-    public int PageSize { get; init; } = ValidatePageSize(PageSize);
+    public int PageSize { get; init; } = PageSize;
 
     /// <summary>
     /// Sort field

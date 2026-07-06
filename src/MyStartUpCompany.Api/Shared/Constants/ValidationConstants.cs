@@ -1,9 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MyStartUpCompany.Api.Shared.Constants;
 
 /// <summary>
 /// Constants for API validation rules.
 /// Centralized here to ensure consistency across the application and easy modification.
+/// Excluded from code coverage as it contains only constants with no executable logic.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class ValidationConstants
 {
     /// <summary>

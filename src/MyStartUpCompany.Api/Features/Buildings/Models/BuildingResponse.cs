@@ -1,12 +1,15 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.Buildings.Models;
 
 /// <summary>
 /// Response DTO for building information
 /// Returned by GET /api/buildings/{id} and GET /api/buildings endpoints
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
 [DisplayName("Building")]
+[ExcludeFromCodeCoverage]
 public record BuildingResponse
 {
     /// <summary>

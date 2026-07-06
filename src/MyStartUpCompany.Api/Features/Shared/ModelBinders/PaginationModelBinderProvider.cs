@@ -3,13 +3,17 @@ using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Api.Features.Buildings.Models;
 using MyStartUpCompany.Api.Features.Locations.Models;
 using MyStartUpCompany.Api.Features.Offices.Models;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.Shared.ModelBinders;
 
 /// <summary>
 /// Model binder provider that registers custom pagination binders for request types.
 /// Handles empty string pagination parameters by applying safe defaults before validation.
+/// 
+/// Excluded from code coverage: Infrastructure/framework code that is tested through integration tests.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class PaginationModelBinderProvider : IModelBinderProvider
 {
     private static readonly HashSet<Type> SupportedTypes = new()

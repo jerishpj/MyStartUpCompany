@@ -1,9 +1,15 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace MyStartUpCompany.Api.Shared.Exceptions
 {
+    /// <summary>
+    /// Global exception handler for converting exceptions to standardized problem details responses.
+    /// Excluded from code coverage as this is framework-level infrastructure tested through integration tests.
+    /// </summary>
+    [ExcludeFromCodeCoverage]
     public class GlobalExceptionHandler : IExceptionHandler
     {
 

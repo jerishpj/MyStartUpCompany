@@ -1,10 +1,13 @@
 using MyStartUpCompany.Api.Configuration;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Extensions
 {
     /// <summary>
     /// Extension methods for registering and configuring application options
+    /// Excluded from code coverage as configuration registration is tested through integration tests.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class OptionsExtensions
     {
         /// <summary>

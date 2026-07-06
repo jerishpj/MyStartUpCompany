@@ -1,9 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MyStartUpCompany.Api.Features.Projects.Models;
 
 /// <summary>
 /// Request DTO for creating or updating a Project
 /// Maps to the normalized searchable fields; ProjectDetails are constructed internally
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class CreateProjectRequest
 {
     /// <summary>

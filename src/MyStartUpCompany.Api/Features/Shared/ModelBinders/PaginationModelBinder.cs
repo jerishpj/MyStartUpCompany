@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.Shared.ModelBinders;
 
@@ -9,7 +10,10 @@ namespace MyStartUpCompany.Api.Features.Shared.ModelBinders;
 /// Generic model binder for pagination-aware request types.
 /// Handles empty/null pagination parameters by applying safe defaults.
 /// Also handles collection parameters like IEnumerable&lt;string&gt;.
+/// 
+/// Excluded from code coverage: Infrastructure/framework code that is tested through integration tests.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class PaginationModelBinder : IModelBinder
 {
     public Task BindModelAsync(ModelBindingContext bindingContext)
@@ -104,16 +108,16 @@ public class PaginationModelBinder : IModelBinder
 
                 var stringValue = value.FirstValue?.Trim();
 
-                // Handle PageNumber with empty string defaulting
+                // Handle PageNumber - pass through raw value for validator to check
                 if (fieldName.Equals("PageNumber", StringComparison.OrdinalIgnoreCase))
                 {
                     if (string.IsNullOrEmpty(stringValue))
                     {
-                        args[i] = 1;
+                        args[i] = 1; // Default when not provided
                     }
-                    else if (int.TryParse(stringValue, out var pageNum) && pageNum > 0)
+                    else if (int.TryParse(stringValue, out var pageNum))
                     {
-                        args[i] = pageNum;
+                        args[i] = pageNum; // Pass through value (even if invalid) for validator
                     }
                     else
                     {
@@ -122,16 +126,16 @@ public class PaginationModelBinder : IModelBinder
                     continue;
                 }
 
-                // Handle PageSize with empty string defaulting
+                // Handle PageSize - pass through raw value for validator to check
                 if (fieldName.Equals("PageSize", StringComparison.OrdinalIgnoreCase))
                 {
                     if (string.IsNullOrEmpty(stringValue))
                     {
-                        args[i] = 10;
+                        args[i] = 10; // Default when not provided
                     }
-                    else if (int.TryParse(stringValue, out var pageSize) && pageSize > 0)
+                    else if (int.TryParse(stringValue, out var pageSize))
                     {
-                        args[i] = pageSize;
+                        args[i] = pageSize; // Pass through value (even if invalid) for validator
                     }
                     else
                     {

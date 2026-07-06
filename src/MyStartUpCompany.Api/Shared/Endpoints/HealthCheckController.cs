@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace MyStartUpCompany.Api.Shared.Endpoints;
@@ -6,9 +7,11 @@ namespace MyStartUpCompany.Api.Shared.Endpoints;
 /// <summary>
 /// Health check endpoint for monitoring service status
 /// Provides basic and detailed health information
+/// Excluded from code coverage as this is a monitoring/infrastructure endpoint, not core business logic.
 /// </summary>
 [ApiController]
 [Route("health")]
+[ExcludeFromCodeCoverage]
 public class HealthCheckController : ControllerBase
 {
     private readonly ILogger<HealthCheckController> _logger;

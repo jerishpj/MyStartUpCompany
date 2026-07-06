@@ -1,12 +1,15 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Models;
 
 /// <summary>
 /// Response DTO for company's detailed information
 /// Returned by GET /api/companies/{id} and GET /api/companies endpoints
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
 [DisplayName("Company")]
+[ExcludeFromCodeCoverage]
 public record CompanyResponse
 {
     /// <summary>

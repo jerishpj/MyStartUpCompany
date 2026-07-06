@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Filters;
+using System.Diagnostics.CodeAnalysis;
 using ValidationException = MyStartUpCompany.Api.Shared.Exceptions.ValidationException;
 
 namespace MyStartUpCompany.Api.Shared.Filters;
@@ -7,7 +8,9 @@ namespace MyStartUpCompany.Api.Shared.Filters;
 /// <summary>
 /// Action filter that validates model state using FluentValidation validators.
 /// Automatically validates models and throws ValidationException if validation fails.
+/// Excluded from code coverage as this is framework-level infrastructure tested through integration tests.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class FluentValidationFilter : IAsyncActionFilter
 {
     private readonly IServiceProvider _serviceProvider;

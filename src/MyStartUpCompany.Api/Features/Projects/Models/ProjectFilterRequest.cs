@@ -1,9 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MyStartUpCompany.Api.Features.Projects.Models;
 
 /// <summary>
 /// Query/filter parameters for project list endpoints
 /// Maps to searchable columns: ProjectIdentifier, Code, Location, CompanyId, Type
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class ProjectFilterRequest
 {
     /// <summary>

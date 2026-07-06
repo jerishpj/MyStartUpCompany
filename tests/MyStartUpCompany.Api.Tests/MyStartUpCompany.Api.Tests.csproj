@@ -34,7 +34,10 @@
     <Folder Include="Features\Locations\Queries\" />
     <Folder Include="Features\Offices\Mappings\" />
     <Folder Include="Features\Projects\Mappings\" />
+    <Folder Include="Features\Projects\Queries\" />
+    <Folder Include="Features\Shared\ModelBinders\" />
     <Folder Include="Integration\Features\Offices\" />
+    <Folder Include="Shared\Filters\" />
   </ItemGroup>
 
 </Project>

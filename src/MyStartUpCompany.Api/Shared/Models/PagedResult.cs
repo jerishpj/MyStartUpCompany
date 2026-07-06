@@ -1,8 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MyStartUpCompany.Api.Shared.Models;
 
 /// <summary>
 /// Generic paginated result wrapper
+/// Excluded from code coverage as it is a generic DTO wrapper with no business logic.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public record PagedResult<T>
 {
     /// <summary>

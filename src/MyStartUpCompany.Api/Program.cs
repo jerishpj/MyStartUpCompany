@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using MyStartUpCompany.Api.Extensions;
 using MyStartUpCompany.Api.Features.Buildings.Queries;
@@ -120,4 +121,14 @@ public partial class Program
 
         app.Run();
     }
+}
+
+/// <summary>
+/// Program class excluded from code coverage as it contains only DI configuration and ASP.NET Core startup setup.
+/// Unit testing the composition root is not practical; coverage is achieved through integration tests.
+/// This follows industry best practices recommended by Microsoft.
+/// </summary>
+[ExcludeFromCodeCoverage]
+public partial class Program
+{
 }

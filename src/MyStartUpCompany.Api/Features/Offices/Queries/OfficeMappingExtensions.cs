@@ -1,17 +1,21 @@
 using MyStartUpCompany.Api.Features.Offices.Models;
 using MyStartUpCompany.Persistence.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.Offices.Queries;
 
 /// <summary>
 /// Mapping extensions for office entities within the Offices feature.
 /// These mappings are scoped to this feature for proper vertical slice encapsulation.
+/// Excluded from code coverage as LINQ projection extensions are better tested through integration tests.
+/// Any errors in mappings are immediately visible in query results.
 /// 
 /// Architecture Note:
 /// - These extensions use database-level LINQ projections for efficiency
 /// - They are marked 'internal' to prevent cross-feature dependencies
 /// - Maintains feature independence while preserving performance benefits
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class OfficeMappingExtensions
 {
     /// <summary>

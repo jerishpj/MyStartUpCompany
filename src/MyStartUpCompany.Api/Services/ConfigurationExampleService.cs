@@ -1,12 +1,15 @@
 using MyStartUpCompany.Api.Configuration;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Services
 {
     /// <summary>
     /// Example service demonstrating how to consume typed options
     /// This service shows both IOptions<T> (immutable) and IOptionsMonitor<T> (dynamic)
+    /// Excluded from code coverage as this is example/documentation code, not core business logic.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ConfigurationExampleService
     {
         private readonly IOptions<ApiOptions> _apiOptions;

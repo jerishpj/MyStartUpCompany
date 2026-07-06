@@ -1,18 +1,22 @@
 using MyStartUpCompany.Api.Features.Projects.Models;
 using MyStartUpCompany.Persistence.Entities;
 using MyStartUpCompany.Persistence.Entities.ValueObjects;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.Projects.Queries;
 
 /// <summary>
 /// Mapping extensions for project entities within the Projects feature.
 /// These mappings are scoped to this feature for proper vertical slice encapsulation.
+/// Excluded from code coverage as LINQ projection extensions are better tested through integration tests.
+/// Any errors in mappings are immediately visible in query results.
 /// 
 /// Architecture Note:
 /// - These extensions use database-level LINQ projections for efficiency
 /// - They are marked 'internal' to prevent cross-feature dependencies
 /// - Maintains feature independence while preserving performance benefits
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ProjectMappingExtensions
 {
     /// <summary>

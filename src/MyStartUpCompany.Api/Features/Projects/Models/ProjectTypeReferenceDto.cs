@@ -1,9 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MyStartUpCompany.Api.Features.Projects.Models;
 
 /// <summary>
 /// Response DTO for ProjectType reference data
 /// Used by external applications, reports, and UI to understand valid project types
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class ProjectTypeReferenceDto
 {
     /// <summary>

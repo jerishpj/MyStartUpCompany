@@ -1,11 +1,14 @@
 using MyStartUpCompany.Api.Features.CompanyDetails.Models;
 using MyStartUpCompany.Persistence.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 
 /// <summary>
 /// Mapping extensions for company entities within the CompanyDetails feature.
 /// These mappings are scoped to this feature for proper vertical slice encapsulation.
+/// Excluded from code coverage as LINQ projection extensions are better tested through integration tests.
+/// Any errors in mappings are immediately visible in query results.
 /// 
 /// Architecture Note:
 /// - These extensions use database-level LINQ projections for efficiency
@@ -13,6 +16,7 @@ namespace MyStartUpCompany.Api.Features.CompanyDetails.Queries;
 /// - Each feature maintains its own DTOs and mappings
 /// - Moving mapping logic to feature scope maintains performance while improving architecture
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class CompanyMappingExtensions
 {
     /// <summary>

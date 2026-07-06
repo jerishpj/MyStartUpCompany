@@ -1,12 +1,15 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyStartUpCompany.Api.Features.Locations.Models;
 
 /// <summary>
 /// Response DTO for location/branch information
 /// Returned by GET /api/locations/{id} and GET /api/locations endpoints
+/// Excluded from code coverage as it is a data transfer object with no business logic.
 /// </summary>
 [DisplayName("Location")]
+[ExcludeFromCodeCoverage]
 public record LocationResponse
 {
     /// <summary>
